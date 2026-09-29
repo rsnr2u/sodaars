@@ -9,7 +9,9 @@ echo.
 echo Launching push... A browser window may open to authorize GitHub.
 echo.
 
-"C:\Users\DIGI TAALKS\AppData\Local\Programs\MinGit\cmd\git.exe" push -u origin main
+set "PATH=%LOCALAPPDATA%\Programs\MinGit\cmd;%LOCALAPPDATA%\Programs\MinGit\ucrt64\bin;%PATH%"
+
+git push -u origin main
 
 if %ERRORLEVEL% EQU 0 (
     echo.

@@ -52,34 +52,34 @@ export const HoldDetailPopover: React.FC<HoldDetailPopoverProps> = ({
         </div>
 
         {/* Resource Reference */}
-        <div className="p-3.5 rounded-lg bg-[#FAFAF9] border border-[#E5E5E5] space-y-2 text-xs">
-          <div className="flex items-center gap-2 text-[#171717]">
-            <Layers size={14} className="text-[#EA580C]" />
+        <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-2 text-xs">
+          <div className="flex items-center gap-2 text-[#1A2435]">
+            <Layers size={14} className="text-[#E11D2E]" />
             <span className="font-bold">{resourceName}</span>
           </div>
-          <div className="text-[11px] text-[#737373]">
-            Type: <span className="font-medium text-[#171717]">{resourceType}</span>
+          <div className="text-[11px] text-[#64748B]">
+            Type: <span className="font-semibold text-[#1A2435]">{resourceType}</span>
           </div>
-          <div className="flex items-center gap-1.5 text-[11px] text-[#737373]">
-            <MapPin size={11} className="text-[#EA580C]" />
+          <div className="flex items-center gap-1.5 text-[11px] text-[#64748B]">
+            <MapPin size={11} className="text-[#E11D2E]" />
             <span>{locationName}</span>
           </div>
-          <div className="flex items-center gap-1.5 text-[11px] text-[#737373] pt-1 border-t border-[#E5E5E5]">
-            <Calendar size={11} className="text-[#737373]" />
-            <span className="font-mono text-[#171717] font-semibold">{dateRange}</span>
+          <div className="flex items-center gap-1.5 text-[11px] text-[#64748B] pt-2 border-t border-[#E2E8F0]">
+            <Calendar size={11} className="text-[#64748B]" />
+            <span className="font-mono text-[#1A2435] font-semibold">{dateRange}</span>
           </div>
           {holdRef && (
-            <div className="text-[11px] text-[#737373]">
-              Hold Reference: <span className="font-mono text-[#171717]">{holdRef}</span>
+            <div className="text-[11px] text-[#64748B]">
+              Hold Reference: <span className="font-mono font-bold text-[#1A2435]">{holdRef}</span>
             </div>
           )}
         </div>
 
-        {/* Policy Notice: No hardcoded expiry */}
-        <div className="p-3 rounded-lg bg-stone-50 border border-stone-200 text-xs text-[#525252] flex items-start gap-2">
-          <Info size={14} className="text-[#737373] shrink-0 mt-0.5" />
+        {/* Policy Notice: Soft Hold Guidance */}
+        <div className="p-3 rounded-lg bg-amber-50/70 border border-amber-200/80 text-xs text-amber-900 flex items-start gap-2">
+          <Info size={14} className="text-amber-700 shrink-0 mt-0.5" />
           <p className="text-[11px] leading-relaxed">
-            <strong>System Policy:</strong> Hold auto-expiry threshold is currently TBD. No automatic slot release is applied.
+            <strong>48–72h Tentative Hold:</strong> This asset is soft-blocked pending client quotation sign-off or direct deposit. Overlapping inquiries are placed on priority standby queue.
           </p>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { InvoiceRecord } from '../types/finance';
 
 export const SAMPLE_PROVIDER_PROFILE = {
-  name: 'Apex Outdoor Media Network Pvt Ltd',
+  name: 'MD Arts Outdoor Media Network Pvt Ltd',
   gstin: '27AABCS1429B1Z4',
   pan: 'AABCS1429B',
   address: 'Level 4, Trade Centre, Bandra Kurla Complex (BKC), Mumbai, Maharashtra 400051',
@@ -12,7 +12,7 @@ export const SAMPLE_PROVIDER_PROFILE = {
     ifsc: 'HDFC0001234',
     branch: 'BKC Corporate Branch, Mumbai',
     accountType: 'Current Account',
-    upiId: 'apexoutdoor@hdfcbank',
+    upiId: 'mdarts@hdfcbank',
   },
 };
 

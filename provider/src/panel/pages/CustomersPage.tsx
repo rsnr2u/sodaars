@@ -79,7 +79,7 @@ export const CustomersPage: React.FC = () => {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
+  const [pageSize, setPageSize] = useState(50);
 
   // Sliding Window (Drawer) for Customer Bookings
   const [isBookingsDrawerOpen, setIsBookingsDrawerOpen] = useState(false);
@@ -860,10 +860,9 @@ export const CustomersPage: React.FC = () => {
                     }}
                     className="h-7 px-2 rounded-md border border-[#E5E5E5] bg-white text-xs text-[#171717] focus:outline-none focus:border-[#EA580C]"
                   >
-                    <option value={5}>5</option>
-                    <option value={10}>10</option>
-                    <option value={20}>20</option>
                     <option value={50}>50</option>
+                    <option value={100}>100</option>
+                    <option value={200}>200</option>
                   </select>
                 </div>
               </div>

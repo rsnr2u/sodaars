@@ -271,7 +271,7 @@ export const TeamManagementPage: React.FC = () => {
             Role-Based
           </div>
           <div className="text-[11px] text-[#737373] mt-0.5">
-            Scoped strictly to Apex Media Networks
+            Scoped strictly to MD ARTS
           </div>
         </div>
       </div>
@@ -594,7 +594,7 @@ export const TeamManagementPage: React.FC = () => {
             label="Colleague Email Address"
             type="email"
             required
-            placeholder="colleague@apexoutdoor.com"
+            placeholder="colleague@mdarts.com"
             value={inviteEmail}
             onChange={(e) => {
               setInviteEmail(e.target.value);
@@ -740,7 +740,7 @@ export const TeamManagementPage: React.FC = () => {
             </div>
           </div>
           <p className="text-[#525252] leading-relaxed">
-            Their login sessions will be immediately terminated, and their permissions to view or manage Apex Media Networks inventory will be completely revoked.
+            Their login sessions will be immediately terminated, and their permissions to view or manage MD ARTS inventory will be completely revoked.
           </p>
         </div>
       </Modal>

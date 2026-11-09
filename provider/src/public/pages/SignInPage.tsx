@@ -73,16 +73,16 @@ export const SignInPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F5F5F4] text-[#171717]">
+    <div className="min-h-screen flex flex-col bg-[#F4F6F8] text-[#1A2435]">
       {/* 1. Dedicated Header */}
-      <header className="w-full bg-white border-b border-[#E5E5E5] px-4 sm:px-6 lg:px-8 py-3.5 sticky top-0 z-40">
+      <header className="w-full bg-white border-b border-[#E2E8F0] px-4 sm:px-6 lg:px-8 py-3.5 sticky top-0 z-40">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
             <img
               src="/sodaars-logo.png"
-              alt="SODAARS"
-              className="h-7 w-auto object-contain transition-transform group-hover:opacity-90"
+              alt="SODAARS - Turning Hoardings Into Digital Reach"
+              className="h-[34px] w-auto object-contain transition-transform group-hover:opacity-90"
             />
           </Link>
 
@@ -90,11 +90,11 @@ export const SignInPage: React.FC = () => {
           <div className="flex items-center gap-4">
             <Link
               to="/"
-              className="text-xs font-semibold text-[#171717] hover:text-[#F97316] flex items-center gap-1 transition-colors"
+              className="text-xs font-semibold text-[#1A2435] hover:text-[#E11D2E] flex items-center gap-1 transition-colors"
             >
               Back to SODAARS <ArrowRight size={13} />
             </Link>
-            <div className="w-8 h-8 rounded-full bg-[#854D0E] text-white flex items-center justify-center shadow-xs">
+            <div className="w-8 h-8 rounded-full bg-[#1A2435] text-white flex items-center justify-center shadow-xs">
               <User size={15} />
             </div>
           </div>
@@ -105,17 +105,17 @@ export const SignInPage: React.FC = () => {
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-10">
         <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Sign In Card */}
-          <div className="lg:col-span-5 bg-white rounded-xl border border-[#E5E5E5] p-6 sm:p-8 shadow-xs">
+          <div className="lg:col-span-5 bg-white rounded-xl border border-[#E2E8F0] p-6 sm:p-8 shadow-xs">
             {/* Status dot */}
-            <div className="inline-flex items-center gap-2 text-[11px] font-bold text-[#EA580C] uppercase tracking-wider mb-2">
-              <span className="w-2 h-2 rounded-full bg-[#F97316]" />
+            <div className="inline-flex items-center gap-2 text-[11px] font-bold text-[#E11D2E] uppercase tracking-wider mb-2">
+              <span className="w-2 h-2 rounded-full bg-[#E11D2E]" />
               SODAARS PROVIDER PLATFORM
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#171717] tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1A2435] tracking-tight">
               Welcome back.
             </h1>
-            <p className="mt-2 text-xs sm:text-sm text-[#525252] leading-relaxed">
+            <p className="mt-2 text-xs sm:text-sm text-[#475569] leading-relaxed">
               Sign in to manage your outdoor advertising resources, availability, bookings, customers and campaigns.
             </p>
 
@@ -135,14 +135,14 @@ export const SignInPage: React.FC = () => {
                   placeholder="name@enterprise-media.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-[#E5E5E5] bg-white text-sm text-[#171717] placeholder:text-[#A3A3A3] focus:border-[#F97316] focus:ring-1 focus:ring-[#F97316] outline-none transition-all"
+                  className="w-full px-3.5 py-2.5 rounded-lg border border-[#E2E8F0] bg-white text-sm text-[#1A2435] placeholder:text-[#94A3B8] focus:border-[#E11D2E] focus:ring-1 focus:ring-[#E11D2E] outline-none transition-all"
                 />
               </div>
 
               {/* Password */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-semibold text-[#171717]">Password</label>
+                  <label className="text-xs font-semibold text-[#1A2435]">Password</label>
                 </div>
                 <div className="relative">
                   <input
@@ -151,12 +151,12 @@ export const SignInPage: React.FC = () => {
                     placeholder="••••••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-3.5 pr-10 py-2.5 rounded-lg border border-[#E5E5E5] bg-white text-sm text-[#171717] placeholder:text-[#A3A3A3] focus:border-[#F97316] focus:ring-1 focus:ring-[#F97316] outline-none transition-all"
+                    className="w-full pl-3.5 pr-10 py-2.5 rounded-lg border border-[#E2E8F0] bg-white text-sm text-[#1A2435] placeholder:text-[#94A3B8] focus:border-[#E11D2E] focus:ring-1 focus:ring-[#E11D2E] outline-none transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#737373] hover:text-[#171717]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#1A2435]"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -166,16 +166,16 @@ export const SignInPage: React.FC = () => {
 
               {/* Remember me & Forgot password */}
               <div className="flex items-center justify-between text-xs pt-0.5">
-                <label className="flex items-center gap-2 text-[#525252] cursor-pointer select-none">
+                <label className="flex items-center gap-2 text-[#475569] cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="rounded border-[#D4D4D4] text-[#F97316] focus:ring-[#F97316] w-3.5 h-3.5"
+                    className="rounded border-[#CBD5E1] text-[#E11D2E] focus:ring-[#E11D2E] w-3.5 h-3.5"
                   />
                   <span>Remember me</span>
                 </label>
-                <a href="#forgot" className="text-[#EA580C] font-semibold hover:underline">
+                <a href="#forgot" className="text-[#E11D2E] font-semibold hover:underline">
                   Forgot password?
                 </a>
               </div>
@@ -184,7 +184,7 @@ export const SignInPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full mt-2 py-2.5 px-4 rounded-lg bg-[#F97316] hover:bg-[#EA580C] text-white font-semibold text-sm shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
+                className="w-full mt-2 py-2.5 px-4 rounded-lg bg-[#E11D2E] hover:bg-[#C51323] text-white font-semibold text-sm shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
               >
                 {isLoading ? 'Signing in...' : 'Sign In →'}
               </button>
@@ -192,9 +192,9 @@ export const SignInPage: React.FC = () => {
               {/* OR Divider */}
               <div className="relative my-4 flex items-center justify-center">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-[#E5E5E5]" />
+                  <div className="w-full border-t border-[#E2E8F0]" />
                 </div>
-                <span className="relative bg-white px-3 text-[11px] font-medium text-[#737373] uppercase tracking-wider">
+                <span className="relative bg-white px-3 text-[11px] font-medium text-[#64748B] uppercase tracking-wider">
                   OR
                 </span>
               </div>
@@ -204,7 +204,7 @@ export const SignInPage: React.FC = () => {
                 type="button"
                 onClick={handleGoogleSignIn}
                 disabled={isLoading}
-                className="w-full py-2.5 px-4 rounded-lg border border-[#E5E5E5] hover:bg-[#FAFAF9] text-[#171717] font-semibold text-sm shadow-xs transition-colors flex items-center justify-center gap-2.5 cursor-pointer"
+                className="w-full py-2.5 px-4 rounded-lg border border-[#E2E8F0] hover:bg-[#F4F6F8] text-[#1A2435] font-semibold text-sm shadow-xs transition-colors flex items-center justify-center gap-2.5 cursor-pointer"
               >
                 <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                   <path
@@ -228,30 +228,30 @@ export const SignInPage: React.FC = () => {
               </button>
 
               {/* Create account link */}
-              <div className="text-center text-xs text-[#525252] pt-3">
+              <div className="text-center text-xs text-[#475569] pt-3">
                 New to SODAARS?{' '}
-                <Link to="/get-started" className="text-[#EA580C] font-semibold hover:underline">
+                <Link to="/get-started" className="text-[#E11D2E] font-semibold hover:underline">
                   Create an account →
                 </Link>
               </div>
             </form>
 
             {/* Security footnote */}
-            <div className="mt-6 pt-4 border-t border-[#F5F5F4] flex items-center justify-center gap-1.5 text-[11px] text-[#737373]">
-              <Lock size={12} className="text-[#737373]" />
+            <div className="mt-6 pt-4 border-t border-[#E2E8F0] flex items-center justify-center gap-1.5 text-[11px] text-[#64748B]">
+              <Lock size={12} className="text-[#64748B]" />
               <span>Sign in securely to your SODAARS account.</span>
             </div>
           </div>
 
           {/* Right Column: Connected Platform Showcase */}
-          <div className="lg:col-span-7 bg-white rounded-xl border border-[#E5E5E5] p-6 sm:p-8 shadow-xs relative">
+          <div className="lg:col-span-7 bg-white rounded-xl border border-[#E2E8F0] p-6 sm:p-8 shadow-xs relative">
             {/* Pill */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 border border-orange-200 text-[#EA580C] text-[11px] font-semibold uppercase tracking-wider mb-4">
-              <span className="w-2 h-2 rounded-full bg-[#F97316]" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-[#E11D2E] text-[11px] font-semibold uppercase tracking-wider mb-4">
+              <span className="w-2 h-2 rounded-full bg-[#E11D2E]" />
               SODAARS PROVIDER PLATFORM
             </div>
 
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#171717] tracking-tight leading-tight">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1A2435] tracking-tight leading-tight">
               Your outdoor advertising operations, connected.
             </h2>
             <p className="mt-2 text-xs sm:text-sm text-[#525252] leading-relaxed max-w-xl">

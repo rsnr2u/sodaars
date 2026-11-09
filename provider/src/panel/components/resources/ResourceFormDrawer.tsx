@@ -52,6 +52,8 @@ export const ResourceFormDrawer: React.FC<ResourceFormDrawerProps> = ({
   const [visibilityFacing, setVisibilityFacing] = useState('Left Hand Side (LHS)');
   const [customerPrice, setCustomerPrice] = useState<string>('');
   const [sodaarsPrice, setSodaarsPrice] = useState<string>('');
+  const [printingRatePerSqFt, setPrintingRatePerSqFt] = useState<string>('12');
+  const [mountingRatePerSqFt, setMountingRatePerSqFt] = useState<string>('5');
   const [marketplaceParticipation, setMarketplaceParticipation] = useState(true);
   const [status, setStatus] = useState<ResourceStatus>('Active');
   const [mediaUrl, setMediaUrl] = useState('');
@@ -72,6 +74,16 @@ export const ResourceFormDrawer: React.FC<ResourceFormDrawerProps> = ({
       setVisibilityFacing(initialResource.visibilityFacing);
       setCustomerPrice(initialResource.customerPrice !== null ? initialResource.customerPrice.toString() : '');
       setSodaarsPrice(initialResource.sodaarsPrice !== null ? initialResource.sodaarsPrice.toString() : '');
+      setPrintingRatePerSqFt(
+        initialResource.printingRatePerSqFt !== undefined && initialResource.printingRatePerSqFt !== null
+          ? initialResource.printingRatePerSqFt.toString()
+          : '12'
+      );
+      setMountingRatePerSqFt(
+        initialResource.mountingRatePerSqFt !== undefined && initialResource.mountingRatePerSqFt !== null
+          ? initialResource.mountingRatePerSqFt.toString()
+          : '5'
+      );
       setMarketplaceParticipation(initialResource.marketplaceParticipation);
       setStatus(initialResource.status);
       setMediaUrl(initialResource.mediaUrl || '');
@@ -88,6 +100,8 @@ export const ResourceFormDrawer: React.FC<ResourceFormDrawerProps> = ({
       setVisibilityFacing('Left Hand Side (LHS)');
       setCustomerPrice('');
       setSodaarsPrice('');
+      setPrintingRatePerSqFt('12');
+      setMountingRatePerSqFt('5');
       setMarketplaceParticipation(true);
       setStatus('Active');
       setMediaUrl('');
@@ -126,6 +140,8 @@ export const ResourceFormDrawer: React.FC<ResourceFormDrawerProps> = ({
 
     const cPrice = customerPrice.trim() ? parseFloat(customerPrice) : null;
     const sPrice = sodaarsPrice.trim() ? parseFloat(sodaarsPrice) : null;
+    const pRate = printingRatePerSqFt.trim() ? parseFloat(printingRatePerSqFt) : 12;
+    const mRate = mountingRatePerSqFt.trim() ? parseFloat(mountingRatePerSqFt) : 5;
 
     const resourcePayload: AdvertisingResource = {
       id: initialResource?.id || `res-${Date.now()}`,
@@ -140,6 +156,8 @@ export const ResourceFormDrawer: React.FC<ResourceFormDrawerProps> = ({
       visibilityFacing: visibilityFacing.trim() || 'Direct Facing',
       customerPrice: cPrice,
       sodaarsPrice: sPrice,
+      printingRatePerSqFt: pRate,
+      mountingRatePerSqFt: mRate,
       marketplaceParticipation,
       status,
       mediaUrl: mediaUrl.trim() || undefined,
@@ -304,7 +322,7 @@ export const ResourceFormDrawer: React.FC<ResourceFormDrawerProps> = ({
                   </option>
                   {savedLocations.map((loc) => (
                     <option key={loc.id} value={loc.id}>
-                      {loc.name} ({loc.city})
+                      {loc.name} ({loc.city}, {loc.state || 'Maharashtra'}{loc.routeName ? ` • ${loc.routeName}` : ''})
                     </option>
                   ))}
                 </select>
@@ -316,7 +334,12 @@ export const ResourceFormDrawer: React.FC<ResourceFormDrawerProps> = ({
                         <MapPin size={15} className="text-[#EA580C] shrink-0 mt-0.5" />
                         <div className="leading-snug">
                           <span className="font-semibold text-[#171717]">{selectedLocation.name}</span>
-                          <span className="text-[#737373]"> • {selectedLocation.city}, {selectedLocation.area}</span>
+                          <span className="text-[#737373]"> • {selectedLocation.area}, {selectedLocation.city}, {selectedLocation.state || 'Maharashtra'}</span>
+                          {selectedLocation.routeName && (
+                            <div className="text-[11px] font-semibold text-[#EA580C] mt-0.5 flex items-center gap-1">
+                              <span>🛣️ Route: {selectedLocation.routeName}</span>
+                            </div>
+                          )}
                           {selectedLocation.landmark && (
                             <div className="text-[11px] text-[#737373] mt-0.5">
                               Landmark: {selectedLocation.landmark}
@@ -512,6 +535,56 @@ export const ResourceFormDrawer: React.FC<ResourceFormDrawerProps> = ({
                 <span className="text-[11px] text-[#737373] mt-0.5 block">
                   Settlement price provided to SODAARS.
                 </span>
+              </div>
+            </div>
+
+            {/* Production & Mounting Rate Configuration */}
+            <div className="pt-2 border-t border-[#E5E5E5] space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-[#171717]">
+                  Production &amp; Mounting Rates (Calculated on {totalSqFt} sq.ft)
+                </span>
+                <span className="text-[10px] text-[#EA580C] font-mono font-semibold bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
+                  Settings Baseline Inherited
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[#171717] mb-1">
+                    Printing Rate (₹ / sq.ft)
+                  </label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="200"
+                    value={printingRatePerSqFt}
+                    onChange={(e) => setPrintingRatePerSqFt(e.target.value)}
+                    placeholder="12"
+                    className="w-full text-xs font-mono"
+                  />
+                  <span className="text-[11px] text-[#737373] mt-0.5 block">
+                    Calculated: {totalSqFt > 0 ? `₹${Math.round(totalSqFt * (parseFloat(printingRatePerSqFt) || 12)).toLocaleString('en-IN')}` : '—'} ({totalSqFt} sq.ft × ₹{printingRatePerSqFt || 12})
+                  </span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#171717] mb-1">
+                    Mounting Rate (₹ / sq.ft)
+                  </label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={mountingRatePerSqFt}
+                    onChange={(e) => setMountingRatePerSqFt(e.target.value)}
+                    placeholder="5"
+                    className="w-full text-xs font-mono"
+                  />
+                  <span className="text-[11px] text-[#737373] mt-0.5 block">
+                    Calculated: {totalSqFt > 0 ? `₹${Math.round(totalSqFt * (parseFloat(mountingRatePerSqFt) || 5)).toLocaleString('en-IN')}` : '—'} ({totalSqFt} sq.ft × ₹{mountingRatePerSqFt || 5})
+                  </span>
+                </div>
               </div>
             </div>
           </div>

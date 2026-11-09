@@ -177,6 +177,8 @@ export const BOOKING_STATUS_CONFIG: Record<BookingStatus, BookingStatusMeta> = {
   },
 };
 
+export type CommercialSectionView = 'all' | 'quotations' | 'direct' | 'marketplace';
+
 export type BookingPipelineTab =
   | 'All'
   | 'Under Review'
@@ -200,6 +202,15 @@ export interface BookingPricing {
   agreedMarkupAmount?: string;
   customerAdjustmentAmount?: string;
   finalInvoicedAmount?: string;
+  // Production, Mounting & Creative Breakdown
+  printingIncluded?: boolean;
+  printingCharges?: number;
+  mountingIncluded?: boolean;
+  mountingCharges?: number;
+  creativeIncluded?: boolean;
+  creativeCharges?: number;
+  creativeDiscountAmount?: number;
+  commercialDiscountAmount?: number;
 }
 
 export interface BookingRecord {
@@ -213,6 +224,10 @@ export interface BookingRecord {
   resourceName: string;
   resourceType: string;
   location: string;
+  state?: string;
+  city?: string;
+  area?: string;
+  routeName?: string;
   startDate: string;
   endDate: string;
   source: BookingSource;

@@ -16,8 +16,10 @@ export const INVENTORY_IMPORT_HEADERS: string[] = [
   'Resource Name',
   'Inventory Type',
   'Site Name',
+  'State',
   'City / Town',
   'Area / Locality',
+  'Route / Arterial Corridor',
   'Landmark',
   'Latitude',
   'Longitude',
@@ -39,7 +41,7 @@ export const INVENTORY_IMPORT_INSTRUCTIONS: string[] = [
   '1. Add one inventory resource per row.',
   '2. Do not change the column names.',
   '3. Inventory Type must match an available SODAARS Inventory Type.',
-  '4. Enter the location information available for the resource.',
+  '4. Enter the location information available for the resource (State, City, Area, Route Name).',
   '5. Do not enter Inventory Activation Pricing.',
   '6. Imported inventory will be registered as Inactive.',
   '7. Review your data before uploading.',
@@ -169,20 +171,22 @@ export async function parseInventoryImportFile(file: File): Promise<ParseImportR
       resourceName: getColIdx('Resource Name', 0),
       inventoryType: getColIdx('Inventory Type', 1),
       siteName: getColIdx('Site Name', 2),
-      city: getColIdx('City / Town', 3),
-      area: getColIdx('Area / Locality', 4),
-      landmark: getColIdx('Landmark', 5),
-      latitude: getColIdx('Latitude', 6),
-      longitude: getColIdx('Longitude', 7),
-      dimensions: getColIdx('Dimensions', 8),
-      orientation: getColIdx('Orientation', 9),
-      illumination: getColIdx('Illumination', 10),
-      visibility: getColIdx('Visibility / Facing', 11),
-      customerPrice: getColIdx('Customer Price', 12),
-      sodaarsPrice: getColIdx('SODAARS Price', 13),
-      marketplace: getColIdx('Marketplace Participation', 14),
-      status: getColIdx('Status', 15),
-      description: getColIdx('Description', 16),
+      state: getColIdx('State', 3),
+      city: getColIdx('City / Town', 4),
+      area: getColIdx('Area / Locality', 5),
+      routeName: getColIdx('Route / Arterial Corridor', 6),
+      landmark: getColIdx('Landmark', 7),
+      latitude: getColIdx('Latitude', 8),
+      longitude: getColIdx('Longitude', 9),
+      dimensions: getColIdx('Dimensions', 10),
+      orientation: getColIdx('Orientation', 11),
+      illumination: getColIdx('Illumination', 12),
+      visibility: getColIdx('Visibility / Facing', 13),
+      customerPrice: getColIdx('Customer Price', 14),
+      sodaarsPrice: getColIdx('SODAARS Price', 15),
+      marketplace: getColIdx('Marketplace Participation', 16),
+      status: getColIdx('Status', 17),
+      description: getColIdx('Description', 18),
     };
 
     const dataRows = rows.slice(1);
@@ -212,8 +216,10 @@ export async function parseInventoryImportFile(file: File): Promise<ParseImportR
       const rawName = String(row[colIdx.resourceName] || '').trim();
       const rawType = String(row[colIdx.inventoryType] || '').trim();
       const rawSite = String(row[colIdx.siteName] || '').trim();
+      const rawState = String(row[colIdx.state] || '').trim();
       const rawCity = String(row[colIdx.city] || '').trim();
       const rawArea = String(row[colIdx.area] || '').trim();
+      const rawRoute = String(row[colIdx.routeName] || '').trim();
       const rawLandmark = String(row[colIdx.landmark] || '').trim();
       const rawLat = String(row[colIdx.latitude] || '').trim();
       const rawLng = String(row[colIdx.longitude] || '').trim();
@@ -290,8 +296,10 @@ export async function parseInventoryImportFile(file: File): Promise<ParseImportR
       const location: LocationMetadata = {
         id: `loc-import-${Date.now()}-${rIndex}`,
         name: locName,
+        state: rawState || 'Maharashtra',
         city: rawCity || 'Unspecified City',
         area: rawArea || '',
+        routeName: rawRoute || undefined,
         landmark: rawLandmark || undefined,
         latitude: rawLat || undefined,
         longitude: rawLng || undefined,

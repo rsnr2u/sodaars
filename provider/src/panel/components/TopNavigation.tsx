@@ -26,7 +26,7 @@ export const TopNavigation: React.FC = () => {
   ];
 
   return (
-    <nav className="w-full bg-white border-b border-[#E5E5E5] sticky top-0 z-30 shadow-xs">
+    <nav className="w-full bg-white border-b border-[#E2E8F0] sticky top-0 z-30 shadow-xs">
       {/* Primary Top Navigation Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar py-1">
@@ -38,13 +38,13 @@ export const TopNavigation: React.FC = () => {
               <NavLink
                 key={item.name}
                 to={item.path}
-                className={`flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-md whitespace-nowrap transition-colors border-b-2 ${
+                className={`flex items-center gap-2 px-3 py-2 text-xs rounded-md whitespace-nowrap transition-colors border-b-2 ${
                   isActive
-                    ? 'border-[#F97316] text-[#F97316] bg-orange-50/50 font-semibold'
-                    : 'border-transparent text-[#525252] hover:text-[#171717] hover:bg-[#F5F5F4]'
+                    ? 'border-[#E11D2E] text-[#1A2435] bg-red-50/60 font-bold'
+                    : 'border-transparent text-[#1A2435] font-semibold hover:bg-[#F4F6F8]'
                 }`}
               >
-                <Icon size={15} className={isActive ? 'text-[#F97316]' : 'text-[#737373]'} />
+                <Icon size={15} className={isActive ? 'text-[#E11D2E]' : 'text-[#64748B]'} />
                 <span>{item.name}</span>
               </NavLink>
             );

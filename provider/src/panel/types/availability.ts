@@ -66,13 +66,13 @@ export const AVAILABILITY_STATE_CONFIG: Record<AvailabilityState, AvailabilitySt
   'Provider Block': {
     state: 'Provider Block',
     meaning: 'Provider has blocked the resource/date.',
-    badgeBg: 'bg-orange-50',
-    badgeText: 'text-[#EA580C]',
-    badgeBorder: 'border-orange-200',
-    cellBg: 'bg-orange-50/80',
-    cellText: 'text-orange-900',
-    cellBorder: 'border-orange-200',
-    indicatorBg: 'bg-[#EA580C]',
+    badgeBg: 'bg-red-50',
+    badgeText: 'text-[#E11D2E]',
+    badgeBorder: 'border-red-200',
+    cellBg: 'bg-red-50/80',
+    cellText: 'text-red-900',
+    cellBorder: 'border-red-200',
+    indicatorBg: 'bg-[#E11D2E]',
   },
   'Admin Block': {
     state: 'Admin Block',
@@ -106,12 +106,18 @@ export interface AvailabilityInterval {
   state: AvailabilityState;
   bookingRef?: string;
   holdRef?: string;
+  clientName?: string;
+  reason?: string;
+  notes?: string;
+  createdAt?: string;
 }
 
 export interface ResourceAvailabilityItem {
   id: string;
   name: string;
+  code?: string;
   type: StaticResourceType;
   location: LocationMetadata;
   marketplaceParticipation: boolean;
+  dailyRate?: number;
 }

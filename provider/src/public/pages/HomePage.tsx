@@ -128,7 +128,7 @@ export const HomePage: React.FC = () => {
             {/* CTA Group */}
             <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
               <Link to="/get-started" className="w-full sm:w-auto">
-                <Button size="lg" className="w-full sm:w-auto" rightIcon={<ArrowRight size={16} />}>
+                <Button variant="accent" size="lg" className="w-full sm:w-auto" rightIcon={<ArrowRight size={16} />}>
                   Register Organization
                 </Button>
               </Link>

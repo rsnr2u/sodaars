@@ -66,7 +66,7 @@ export const CustomerBookingsTable: React.FC<CustomerBookingsTableProps> = ({
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
+  const [pageSize, setPageSize] = useState(50);
 
   const typeMeta = CUSTOMER_TYPE_CONFIG[customer.customerType];
   const statusMeta = CUSTOMER_STATUS_CONFIG[customer.status];
@@ -704,9 +704,9 @@ export const CustomerBookingsTable: React.FC<CustomerBookingsTableProps> = ({
                 }}
                 className="h-6 px-1.5 rounded border border-[#E5E5E5] bg-white text-[11px] text-[#171717] focus:outline-none focus:border-[#EA580C]"
               >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+                <option value={200}>200</option>
               </select>
             </div>
           </div>

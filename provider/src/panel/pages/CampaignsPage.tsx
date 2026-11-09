@@ -58,7 +58,7 @@ export const CampaignsPage: React.FC = () => {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
+  const [pageSize, setPageSize] = useState(50);
 
   // Drawers and Modal state
   const [isUpdateBookingModalOpen, setIsUpdateBookingModalOpen] = useState(false);
@@ -1008,10 +1008,9 @@ export const CampaignsPage: React.FC = () => {
                     aria-label="Rows per page"
                     className="h-7 text-xs rounded border border-[#E5E5E5] bg-white px-1.5 text-[#171717] focus:outline-none focus:border-[#EA580C]"
                   >
-                    <option value={5}>5</option>
-                    <option value={10}>10</option>
-                    <option value={20}>20</option>
                     <option value={50}>50</option>
+                    <option value={100}>100</option>
+                    <option value={200}>200</option>
                   </select>
                 </div>
               </div>

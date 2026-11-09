@@ -41,6 +41,10 @@ export const CreateBookingPage: React.FC = () => {
   ]);
 
   // Step 4 & Post-creation state
+  const [includePrinting, setIncludePrinting] = useState<boolean>(true);
+  const [includeMounting, setIncludeMounting] = useState<boolean>(true);
+  const [creativeOption, setCreativeOption] = useState<'WAIVED' | 'BILLABLE' | 'NONE'>('WAIVED');
+  const [commercialDiscount, setCommercialDiscount] = useState<number>(0);
   const [isCreatedSuccess, setIsCreatedSuccess] = useState<boolean>(false);
   const [createdBookingRecord, setCreatedBookingRecord] = useState<BookingRecord | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -78,7 +82,18 @@ export const CreateBookingPage: React.FC = () => {
       const randomSuffix = Math.floor(1000 + Math.random() * 9000);
       const bookingId = `BKG-2026-${randomSuffix}`;
 
-      const totalVal = selectedResources.reduce((acc, r) => acc + (r.customerPrice || 0), 0);
+      const baseRental = selectedResources.reduce((acc, r) => acc + (r.customerPrice || 0), 0);
+      const printingCharges = includePrinting
+        ? Math.round(selectedResources.reduce((acc, r) => acc + ((r.totalSqFt || 0) * (r.printingRatePerSqFt || 12)), 0))
+        : 0;
+      const mountingCharges = includeMounting
+        ? Math.round(selectedResources.reduce((acc, r) => acc + ((r.totalSqFt || 0) * (r.mountingRatePerSqFt || 5)), 0))
+        : 0;
+      const creativeCharged = creativeOption === 'BILLABLE' ? 3000 : 0;
+      const grossTotal = baseRental + printingCharges + mountingCharges + creativeCharged;
+      const netTotal = Math.max(0, grossTotal - commercialDiscount);
+      const gstAmount = Math.round(netTotal * 0.18);
+      const grandTotal = netTotal + gstAmount;
 
       const newBooking: BookingRecord = {
         id: bookingId,
@@ -101,8 +116,16 @@ export const CreateBookingPage: React.FC = () => {
         source: 'Provider', // Exact approved source concept
         status: 'UNDER REVIEW', // Approved booking lifecycle status
         pricing: {
-          regularCustomerPrice: String(totalVal),
-          finalInvoicedAmount: String(totalVal),
+          regularCustomerPrice: String(baseRental),
+          finalInvoicedAmount: String(grandTotal),
+          printingIncluded: includePrinting,
+          printingCharges,
+          mountingIncluded: includeMounting,
+          mountingCharges,
+          creativeIncluded: creativeOption !== 'NONE',
+          creativeCharges: creativeCharged,
+          creativeDiscountAmount: creativeOption === 'WAIVED' ? 3000 : 0,
+          commercialDiscountAmount: commercialDiscount,
         },
         createdAt: new Date().toISOString().split('T')[0],
       };
@@ -227,6 +250,14 @@ export const CreateBookingPage: React.FC = () => {
                 onBack={() => setCurrentStep(3)}
                 onCreateBooking={handleCreateBooking}
                 isSubmitting={isSubmitting}
+                includePrinting={includePrinting}
+                onTogglePrinting={setIncludePrinting}
+                includeMounting={includeMounting}
+                onToggleMounting={setIncludeMounting}
+                creativeOption={creativeOption}
+                onChangeCreativeOption={setCreativeOption}
+                commercialDiscount={commercialDiscount}
+                onChangeCommercialDiscount={setCommercialDiscount}
               />
             )}
           </div>

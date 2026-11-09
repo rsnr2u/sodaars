@@ -1,53 +1,57 @@
 /**
  * SODAARS Provider Design Tokens
- * Source of Truth: docs/ui-ux/PROVIDER_UI_UX.md & STITCH_REFERENCE.md
- * 
- * Strict Mandate:
- * - Primary: #F97316
- * - Secondary: #F59E0B
- * - Dark: #171717 / #0D0D0D
- * - Warm neutral: #FAFAF9
- * - STRICTLY NO BLUE UI/BRAND ELEMENTS
+ * Official Brand Palette:
+ * - Primary: Dark Navy (#1A2435)
+ * - Accent: Red (#E11D2E)
+ * - Background: Light Gray (#F4F6F8)
  */
 
 :root {
   /* Brand Tokens */
-  --primary: #f97316;
-  --primary-hover: #ea580c;
-  --primary-active: #c2410c;
-  --primary-light: #fff7ed;
-  --primary-ring: rgba(249, 115, 22, 0.2);
+  --primary: #1a2435;
+  --primary-hover: #121a26;
+  --primary-active: #0c121b;
+  --primary-light: #f0f4f8;
+  --primary-ring: rgba(26, 36, 53, 0.2);
 
-  --secondary: #f59e0b;
-  --secondary-hover: #d97706;
-  --secondary-active: #b45309;
-  --secondary-light: #fffbeb;
+  --accent: #e11d2e;
+  --accent-hover: #c51323;
+  --accent-active: #a50e1b;
+  --accent-light: #fef2f2;
+  --accent-ring: rgba(225, 29, 46, 0.2);
 
-  /* Dark Neutrals */
-  --dark-950: #0d0d0d;
-  --dark-900: #171717;
-  --dark-800: #262626;
-  --dark-700: #404040;
+  /* Secondary / Accent aliases */
+  --secondary: #e11d2e;
+  --secondary-hover: #c51323;
+  --secondary-active: #a50e1b;
+  --secondary-light: #fef2f2;
+
+  /* Dark Navy Neutrals */
+  --dark-950: #0c121b;
+  --dark-900: #121a26;
+  --dark-800: #1a2435;
+  --dark-700: #2c3b52;
+  --dark-600: #3e506d;
 
   /* Canvas & Surface */
-  --canvas-bg: #fafaf9;
+  --canvas-bg: #f4f6f8;
   --surface-card: #ffffff;
-  --surface-hover: #f5f5f4;
-  --surface-muted: #f5f5f4;
-  --surface-subtle: #fbfbf9;
+  --surface-hover: #edf2f7;
+  --surface-muted: #eef2f6;
+  --surface-subtle: #f8fafc;
 
   /* Borders */
-  --border-light: #f5f5f4;
-  --border-subtle: #e5e5e5;
-  --border-medium: #d4d4d8;
-  --border-focus: #f97316;
+  --border-light: #eef2f6;
+  --border-subtle: #e2e8f0;
+  --border-medium: #cbd5e1;
+  --border-focus: #e11d2e;
 
   /* Typography / Text */
-  --text-heading: #171717;
-  --text-primary: #262626;
-  --text-secondary: #525252;
-  --text-muted: #737373;
-  --text-subtle: #a3a3a3;
+  --text-heading: #1a2435;
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-subtle: #94a3b8;
   --text-inverse: #ffffff;
 
   /* Semantic Status Tokens (Data-driven, non-decorative) */
@@ -60,12 +64,12 @@
   --status-pending-border: #fde68a;
 
   --status-error-bg: #fef2f2;
-  --status-error-text: #b91c1c;
+  --status-error-text: #e11d2e;
   --status-error-border: #fecaca;
 
-  --status-inactive-bg: #f5f5f4;
-  --status-inactive-text: #525252;
-  --status-inactive-border: #e5e5e5;
+  --status-inactive-bg: #f1f5f9;
+  --status-inactive-text: #64748b;
+  --status-inactive-border: #e2e8f0;
 
   /* Radii */
   --radius-xs: 4px;
@@ -74,9 +78,9 @@
   --radius-lg: 12px;
 
   /* Shadows - Subtle enterprise elevation */
-  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+  --shadow-xs: 0 1px 2px 0 rgba(26, 36, 53, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(26, 36, 53, 0.08), 0 1px 2px -1px rgba(26, 36, 53, 0.08);
+  --shadow-md: 0 4px 6px -1px rgba(26, 36, 53, 0.08), 0 2px 4px -2px rgba(26, 36, 53, 0.06);
 
   /* Fonts */
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;

@@ -1,7 +1,7 @@
 import React from 'react';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'accent';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
@@ -30,15 +30,17 @@ export const Button: React.FC<ButtonProps> = ({
 
   const variantStyles = {
     primary:
-      'bg-[#F97316] text-white hover:bg-[#EA580C] active:bg-[#C2410C] focus:ring-[#F97316]/30 shadow-xs border border-transparent',
+      'bg-[#1A2435] text-white hover:bg-[#121A26] active:bg-[#0C121B] focus:ring-[#1A2435]/30 shadow-xs border border-transparent',
+    accent:
+      'bg-[#E11D2E] text-white hover:bg-[#C51323] active:bg-[#A50E1B] focus:ring-[#E11D2E]/30 shadow-xs border border-transparent',
     secondary:
-      'bg-white text-[#171717] hover:bg-[#F5F5F4] active:bg-[#E5E5E5] border border-[#E5E5E5] focus:ring-[#F97316]/20 shadow-xs',
+      'bg-white text-[#1A2435] hover:bg-[#F4F6F8] active:bg-[#E2E8F0] border border-[#CBD5E1] focus:ring-[#E11D2E]/20 shadow-xs',
     outline:
-      'bg-transparent text-[#171717] hover:bg-[#F5F5F4] border border-[#E5E5E5] focus:ring-[#F97316]/20',
+      'bg-transparent text-[#1A2435] hover:bg-[#F4F6F8] border border-[#CBD5E1] focus:ring-[#E11D2E]/20',
     ghost:
-      'bg-transparent text-[#525252] hover:bg-[#F5F5F4] hover:text-[#171717] focus:ring-neutral-200 border border-transparent',
+      'bg-transparent text-[#475569] hover:bg-[#F4F6F8] hover:text-[#1A2435] focus:ring-neutral-200 border border-transparent',
     destructive:
-      'bg-[#DC2626] text-white hover:bg-[#B91C1C] active:bg-[#991B1B] focus:ring-red-500/30 shadow-xs border border-transparent',
+      'bg-[#E11D2E] text-white hover:bg-[#C51323] active:bg-[#A50E1B] focus:ring-[#E11D2E]/30 shadow-xs border border-transparent',
   };
 
   return (

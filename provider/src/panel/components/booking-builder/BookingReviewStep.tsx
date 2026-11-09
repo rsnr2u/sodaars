@@ -22,6 +22,14 @@ export interface BookingReviewStepProps {
   onBack: () => void;
   onCreateBooking: () => void;
   isSubmitting?: boolean;
+  includePrinting: boolean;
+  onTogglePrinting: (val: boolean) => void;
+  includeMounting: boolean;
+  onToggleMounting: (val: boolean) => void;
+  creativeOption: 'WAIVED' | 'BILLABLE' | 'NONE';
+  onChangeCreativeOption: (val: 'WAIVED' | 'BILLABLE' | 'NONE') => void;
+  commercialDiscount: number;
+  onChangeCommercialDiscount: (val: number) => void;
 }
 
 export const BookingReviewStep: React.FC<BookingReviewStepProps> = ({
@@ -33,6 +41,14 @@ export const BookingReviewStep: React.FC<BookingReviewStepProps> = ({
   onBack,
   onCreateBooking,
   isSubmitting = false,
+  includePrinting,
+  onTogglePrinting,
+  includeMounting,
+  onToggleMounting,
+  creativeOption,
+  onChangeCreativeOption,
+  commercialDiscount,
+  onChangeCommercialDiscount,
 }) => {
   const calculateDays = (start: string, end: string): number => {
     if (!start || !end) return 0;
@@ -45,11 +61,27 @@ export const BookingReviewStep: React.FC<BookingReviewStepProps> = ({
 
   const durationDays = calculateDays(startDate, endDate);
 
-  const subtotal = selectedResources.reduce((acc, r) => {
-    return acc + (r.customerPrice || 0);
-  }, 0);
+  // Area & Rates
+  const totalAreaSqFt = selectedResources.reduce((acc, r) => acc + (r.totalSqFt || 0), 0);
+  const printingRate = selectedResources[0]?.printingRatePerSqFt || 12;
+  const mountingRate = selectedResources[0]?.mountingRatePerSqFt || 5;
 
-  const formattedSubtotal = `₹${subtotal.toLocaleString('en-IN')}`;
+  // Ancillary calculations
+  const baseRental = selectedResources.reduce((acc, r) => acc + (r.customerPrice || 0), 0);
+  const printingCharges = includePrinting
+    ? Math.round(selectedResources.reduce((acc, r) => acc + ((r.totalSqFt || 0) * (r.printingRatePerSqFt || 12)), 0))
+    : 0;
+  const mountingCharges = includeMounting
+    ? Math.round(selectedResources.reduce((acc, r) => acc + ((r.totalSqFt || 0) * (r.mountingRatePerSqFt || 5)), 0))
+    : 0;
+
+  const creativeFee = 3000;
+  const creativeCharged = creativeOption === 'BILLABLE' ? creativeFee : 0;
+  const grossSubtotal = baseRental + printingCharges + mountingCharges + creativeCharged;
+  const discountAmount = Math.min(commercialDiscount, grossSubtotal);
+  const netTaxable = Math.max(0, grossSubtotal - discountAmount);
+  const gstAmount = Math.round(netTaxable * 0.18);
+  const grandTotal = netTaxable + gstAmount;
 
   const formatDateDisplay = (dateStr: string): string => {
     if (!dateStr) return '—';
@@ -247,32 +279,194 @@ export const BookingReviewStep: React.FC<BookingReviewStepProps> = ({
         </div>
       </div>
 
-      {/* SECTION 4 — PRICING */}
-      <div className="rounded-xl border border-[#E5E5E5] bg-white p-5 shadow-xs space-y-3">
+      {/* SECTION 4 — PRICING & PRODUCTION ADD-ONS (MATCHING SCREENSHOT) */}
+      <div className="rounded-xl border border-[#E5E5E5] bg-white p-5 shadow-xs space-y-4">
         <div className="flex items-center gap-2 border-b border-[#F5F5F4] pb-3">
           <div className="w-7 h-7 rounded-md bg-orange-50 text-[#EA580C] flex items-center justify-center border border-orange-100">
             <DollarSign size={15} />
           </div>
           <h3 className="text-sm font-bold text-[#171717]">
-            SECTION 4 — PRICING
+            SECTION 4 — COMMERCIAL RATE CARD &amp; PRODUCTION ADD-ONS
           </h3>
         </div>
 
-        <div className="max-w-md ml-auto space-y-2 text-xs">
-          <div className="flex items-center justify-between text-[#525252]">
-            <span>Subtotal</span>
-            <span className="font-bold text-[#171717]">{formattedSubtotal}</span>
+        {/* The Exact Add-on Selector from Screenshot */}
+        <div className="p-4 rounded-xl border border-stone-200 bg-[#FAFAF9] space-y-3.5">
+          <div className="flex items-center justify-between border-b border-stone-200 pb-2">
+            <div>
+              <span className="text-xs font-bold text-[#171717] uppercase tracking-wide">
+                Production, Mounting &amp; Creative Add-ons
+              </span>
+              <p className="text-[11px] text-[#737373]">
+                Physical print fabrication, rigger mounting squad, and master artwork resizing
+              </p>
+            </div>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-orange-50 text-[#EA580C] border border-orange-200 font-semibold">
+              {totalAreaSqFt} sq.ft Total Area
+            </span>
           </div>
 
-          <div className="flex items-center justify-between text-[#737373]">
-            <span>Adjustment</span>
-            <span>—</span>
+          <div className="space-y-3">
+            {/* 1. Printing Charges */}
+            <div className="flex items-center justify-between text-xs">
+              <label className="flex items-center gap-2.5 cursor-pointer font-medium text-stone-900">
+                <input
+                  type="checkbox"
+                  checked={includePrinting}
+                  onChange={(e) => onTogglePrinting(e.target.checked)}
+                  className="w-4 h-4 rounded border-stone-300 text-[#EA580C] focus:ring-[#EA580C]"
+                />
+                <span>Printing Charges (₹{printingRate}/sqft)</span>
+              </label>
+              <span className="font-mono font-bold text-stone-900 text-sm">
+                {includePrinting ? `₹${printingCharges.toLocaleString('en-IN')}` : '₹0'}
+              </span>
+            </div>
+
+            {/* 2. Mounting Charges */}
+            <div className="flex items-center justify-between text-xs">
+              <label className="flex items-center gap-2.5 cursor-pointer font-medium text-stone-900">
+                <input
+                  type="checkbox"
+                  checked={includeMounting}
+                  onChange={(e) => onToggleMounting(e.target.checked)}
+                  className="w-4 h-4 rounded border-stone-300 text-[#EA580C] focus:ring-[#EA580C]"
+                />
+                <span>Mounting Charges (₹{mountingRate}/sqft)</span>
+              </label>
+              <span className="font-mono font-bold text-stone-900 text-sm">
+                {includeMounting ? `₹${mountingCharges.toLocaleString('en-IN')}` : '₹0'}
+              </span>
+            </div>
+
+            {/* 3. Ad Creatives / Designs */}
+            <div className="flex items-center justify-between text-xs pt-1 border-t border-stone-200/80">
+              <div className="space-y-1">
+                <label className="flex items-center gap-2.5 cursor-pointer font-medium text-stone-900">
+                  <input
+                    type="checkbox"
+                    checked={creativeOption !== 'NONE'}
+                    onChange={(e) => onChangeCreativeOption(e.target.checked ? 'WAIVED' : 'NONE')}
+                    className="w-4 h-4 rounded border-stone-300 text-[#EA580C] focus:ring-[#EA580C]"
+                  />
+                  <span>Ad Creatives / Designs</span>
+                </label>
+                {creativeOption !== 'NONE' && (
+                  <div className="pl-6.5 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onChangeCreativeOption('WAIVED')}
+                      className={`text-[10px] px-2 py-0.5 rounded font-semibold transition-colors ${
+                        creativeOption === 'WAIVED'
+                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                          : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                      }`}
+                    >
+                      Courtesy Waiver (Free)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onChangeCreativeOption('BILLABLE')}
+                      className={`text-[10px] px-2 py-0.5 rounded font-semibold transition-colors ${
+                        creativeOption === 'BILLABLE'
+                          ? 'bg-orange-100 text-[#EA580C] border border-orange-300'
+                          : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                      }`}
+                    >
+                      Charge Fee (₹3,000)
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="font-mono font-bold flex items-center gap-2 text-sm">
+                {creativeOption === 'WAIVED' && (
+                  <>
+                    <span className="line-through text-stone-400 font-normal">₹3,000</span>
+                    <span className="text-emerald-700">₹0</span>
+                  </>
+                )}
+                {creativeOption === 'BILLABLE' && <span className="text-stone-900">₹3,000</span>}
+                {creativeOption === 'NONE' && (
+                  <>
+                    <span className="line-through text-stone-400 font-normal">₹3,000</span>
+                    <span className="text-stone-500 font-normal">₹0</span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Commercial Ledger Breakdown */}
+        <div className="max-w-md ml-auto space-y-2 text-xs pt-1">
+          <div className="flex items-center justify-between text-[#525252]">
+            <span>Media Display Rental</span>
+            <span className="font-bold font-mono text-[#171717]">₹{baseRental.toLocaleString('en-IN')}</span>
+          </div>
+
+          {includePrinting && (
+            <div className="flex items-center justify-between text-[#525252]">
+              <span>Flex Solvent Printing ({totalAreaSqFt} sq.ft)</span>
+              <span className="font-bold font-mono text-[#171717]">₹{printingCharges.toLocaleString('en-IN')}</span>
+            </div>
+          )}
+
+          {includeMounting && (
+            <div className="flex items-center justify-between text-[#525252]">
+              <span>Rigger Mounting Squad ({totalAreaSqFt} sq.ft)</span>
+              <span className="font-bold font-mono text-[#171717]">₹{mountingCharges.toLocaleString('en-IN')}</span>
+            </div>
+          )}
+
+          {creativeOption === 'BILLABLE' && (
+            <div className="flex items-center justify-between text-[#525252]">
+              <span>Master Ad Creative Fee</span>
+              <span className="font-bold font-mono text-[#171717]">₹3,000</span>
+            </div>
+          )}
+
+          {creativeOption === 'WAIVED' && (
+            <div className="flex items-center justify-between text-emerald-700">
+              <span>Courtesy Creative Fee Waiver</span>
+              <span className="font-bold font-mono">-₹3,000 (100% Free)</span>
+            </div>
+          )}
+
+          <div className="pt-2 border-t border-[#E5E5E5] flex items-center justify-between text-xs">
+            <span className="font-bold text-[#171717]">Gross Subtotal</span>
+            <span className="font-bold font-mono text-[#171717]">₹{grossSubtotal.toLocaleString('en-IN')}</span>
+          </div>
+
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-[#525252]">Commercial Discount (₹)</span>
+            <input
+              type="number"
+              min={0}
+              step={500}
+              value={commercialDiscount || ''}
+              onChange={(e) => onChangeCommercialDiscount(Number(e.target.value) || 0)}
+              placeholder="0"
+              className="w-24 h-7 text-right px-2 py-0.5 rounded border border-stone-200 font-mono text-xs text-stone-900 focus:outline-none focus:border-[#EA580C]"
+            />
+          </div>
+
+          {discountAmount > 0 && (
+            <div className="flex items-center justify-between text-emerald-700 text-xs font-semibold">
+              <span>Discount Applied</span>
+              <span className="font-mono">-₹{discountAmount.toLocaleString('en-IN')}</span>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between text-xs text-[#525252]">
+            <span>GST (18% SAC 998361)</span>
+            <span className="font-mono font-medium">₹{gstAmount.toLocaleString('en-IN')}</span>
           </div>
 
           <div className="pt-2 border-t border-[#E5E5E5] flex items-center justify-between">
-            <span className="font-bold text-sm text-[#171717]">Final Amount</span>
-            <span className="font-extrabold text-lg text-[#EA580C]">
-              {formattedSubtotal}
+            <span className="font-bold text-sm text-[#171717]">Total Final Payable</span>
+            <span className="font-extrabold text-lg text-[#EA580C] font-mono">
+              ₹{grandTotal.toLocaleString('en-IN')}
             </span>
           </div>
         </div>

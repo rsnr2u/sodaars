@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import {
   FileText,
   Plus,
@@ -18,12 +18,15 @@ import {
   List,
   Calendar,
   Truck,
+  Layers,
+  ShoppingBag,
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import Button from '../../components/ui/Button';
 import {
   BookingRecord,
   BookingPipelineTab,
+  CommercialSectionView,
   APPROVED_BOOKING_SOURCES,
   BOOKING_SOURCE_CONFIG,
   BOOKING_STATUS_CONFIG,
@@ -41,12 +44,25 @@ import CreateDirectBookingModal from '../components/bookings/CreateDirectBooking
 import QuotationViewerModal from '../components/bookings/QuotationViewerModal';
 import PushToCampaignModal from '../components/bookings/PushToCampaignModal';
 import InvoiceViewerModal from '../components/finance/InvoiceViewerModal';
+import { getBookingLocation } from '../utils/bookingLocationBridge';
+import { SAMPLE_LOCATIONS } from '../data/sampleInventory';
 
 type SortField = 'id' | 'customerName' | 'startDate' | 'pricing' | 'status';
 type SortDirection = 'asc' | 'desc';
 
 export const BookingsPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Commercial sub-view: 'all' | 'quotations' | 'direct' | 'marketplace'
+  const initialView = (searchParams.get('view') as CommercialSectionView) || 'all';
+  const [sectionView, setSectionView] = useState<CommercialSectionView>(initialView);
+
+  // Sync sectionView with searchParams
+  useEffect(() => {
+    const v = (searchParams.get('view') as CommercialSectionView) || 'all';
+    setSectionView(v);
+  }, [searchParams]);
 
   // Load saved provider bookings or initialize with pre-seeded rich OOH bookings
   const [bookings, setBookings] = useState<BookingRecord[]>(() => getAllProviderBookings());
@@ -59,6 +75,88 @@ export const BookingsPage: React.FC = () => {
   const [startDateFilter, setStartDateFilter] = useState('');
   const [endDateFilter, setEndDateFilter] = useState('');
 
+  // Location Filter State (Hierarchical: State -> City -> Area -> Route)
+  const [selectedState, setSelectedState] = useState<string>('ALL');
+  const [selectedCity, setSelectedCity] = useState<string>('ALL');
+  const [selectedArea, setSelectedArea] = useState<string>('ALL');
+  const [selectedRoute, setSelectedRoute] = useState<string>('ALL');
+
+  // Unique States derived from bookings and inventory catalog
+  const availableStates = useMemo(() => {
+    const states = new Set<string>();
+    bookings.forEach((b) => {
+      const loc = getBookingLocation(b);
+      if (loc.state) states.add(loc.state);
+    });
+    SAMPLE_LOCATIONS.forEach((l) => {
+      if (l.state) states.add(l.state);
+    });
+    return Array.from(states).sort();
+  }, [bookings]);
+
+  // Unique Cities (filtered by selectedState)
+  const availableCities = useMemo(() => {
+    const cities = new Set<string>();
+    bookings.forEach((b) => {
+      const loc = getBookingLocation(b);
+      const matchState =
+        selectedState === 'ALL' || loc.state.toLowerCase() === selectedState.toLowerCase();
+      if (loc.city && matchState) cities.add(loc.city);
+    });
+    SAMPLE_LOCATIONS.forEach((l) => {
+      const matchState =
+        selectedState === 'ALL' || (l.state || '').toLowerCase() === selectedState.toLowerCase();
+      if (l.city && matchState) cities.add(l.city);
+    });
+    return Array.from(cities).sort();
+  }, [bookings, selectedState]);
+
+  // Unique Areas (filtered by selectedState & selectedCity)
+  const availableAreas = useMemo(() => {
+    const areas = new Set<string>();
+    bookings.forEach((b) => {
+      const loc = getBookingLocation(b);
+      const matchState =
+        selectedState === 'ALL' || loc.state.toLowerCase() === selectedState.toLowerCase();
+      const matchCity =
+        selectedCity === 'ALL' || loc.city.toLowerCase() === selectedCity.toLowerCase();
+      if (loc.area && matchState && matchCity) areas.add(loc.area);
+    });
+    SAMPLE_LOCATIONS.forEach((l) => {
+      const matchState =
+        selectedState === 'ALL' || (l.state || '').toLowerCase() === selectedState.toLowerCase();
+      const matchCity =
+        selectedCity === 'ALL' || (l.city || '').toLowerCase() === selectedCity.toLowerCase();
+      if (l.area && matchState && matchCity) areas.add(l.area);
+    });
+    return Array.from(areas).sort();
+  }, [bookings, selectedState, selectedCity]);
+
+  // Unique Routes / Corridors (filtered by selectedState, selectedCity & selectedArea)
+  const availableRoutes = useMemo(() => {
+    const routes = new Set<string>();
+    bookings.forEach((b) => {
+      const loc = getBookingLocation(b);
+      const matchState =
+        selectedState === 'ALL' || loc.state.toLowerCase() === selectedState.toLowerCase();
+      const matchCity =
+        selectedCity === 'ALL' || loc.city.toLowerCase() === selectedCity.toLowerCase();
+      const matchArea =
+        selectedArea === 'ALL' || loc.area.toLowerCase() === selectedArea.toLowerCase();
+      if (loc.routeName && matchState && matchCity && matchArea) routes.add(loc.routeName);
+    });
+    SAMPLE_LOCATIONS.forEach((l) => {
+      const matchState =
+        selectedState === 'ALL' || (l.state || '').toLowerCase() === selectedState.toLowerCase();
+      const matchCity =
+        selectedCity === 'ALL' || (l.city || '').toLowerCase() === selectedCity.toLowerCase();
+      const matchArea =
+        selectedArea === 'ALL' || (l.area || '').toLowerCase() === selectedArea.toLowerCase();
+      if (l.routeName && matchState && matchCity && matchArea) routes.add(l.routeName);
+    });
+    return Array.from(routes).sort();
+  }, [bookings, selectedState, selectedCity, selectedArea]);
+
   // View Mode: Table vs. Kanban Pipeline
   const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
 
@@ -68,7 +166,7 @@ export const BookingsPage: React.FC = () => {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(50);
 
   // Modals & Drawer state
   const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
@@ -108,7 +206,19 @@ export const BookingsPage: React.FC = () => {
   // Reset pagination on filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, activeTab, selectedSource, selectedStatus, startDateFilter, endDateFilter, pageSize]);
+  }, [
+    searchQuery,
+    activeTab,
+    selectedSource,
+    selectedStatus,
+    startDateFilter,
+    endDateFilter,
+    pageSize,
+    selectedState,
+    selectedCity,
+    selectedArea,
+    selectedRoute,
+  ]);
 
   // Parse numerical amount helper
   const getBookingAmount = (b: BookingRecord): number => {
@@ -172,11 +282,43 @@ export const BookingsPage: React.FC = () => {
   // Filtered bookings
   const filteredBookings = useMemo(() => {
     return bookings.filter((booking) => {
+      const loc = getBookingLocation(booking);
+
+      // 1. Commercial Section View filtering
+      if (sectionView === 'quotations') {
+        const isQuotationStage =
+          booking.status === 'UNDER REVIEW' ||
+          booking.status === 'NEW' ||
+          booking.status === 'PROVIDER CONFIRMATION' ||
+          booking.status === 'CUSTOMER CONFIRMATION' ||
+          booking.id.startsWith('QTN-') ||
+          Boolean(booking.quotationId);
+        if (!isQuotationStage) return false;
+      } else if (sectionView === 'direct') {
+        if (booking.source !== 'Provider') return false;
+      } else if (sectionView === 'marketplace') {
+        if (booking.source !== 'Marketplace') return false;
+      }
+
       if (!matchesTab(booking, activeTab)) return false;
       if (selectedSource !== 'ALL' && booking.source !== selectedSource) return false;
       if (selectedStatus !== 'ALL' && booking.status !== selectedStatus) return false;
       if (startDateFilter && booking.startDate < startDateFilter) return false;
       if (endDateFilter && booking.endDate > endDateFilter) return false;
+
+      // Location hierarchy filters
+      if (selectedState !== 'ALL' && loc.state.toLowerCase() !== selectedState.toLowerCase()) {
+        return false;
+      }
+      if (selectedCity !== 'ALL' && loc.city.toLowerCase() !== selectedCity.toLowerCase()) {
+        return false;
+      }
+      if (selectedArea !== 'ALL' && loc.area.toLowerCase() !== selectedArea.toLowerCase()) {
+        return false;
+      }
+      if (selectedRoute !== 'ALL' && loc.routeName.toLowerCase() !== selectedRoute.toLowerCase()) {
+        return false;
+      }
 
       if (searchQuery.trim() !== '') {
         const query = searchQuery.toLowerCase();
@@ -185,12 +327,39 @@ export const BookingsPage: React.FC = () => {
         const matchesCompany = booking.companyName.toLowerCase().includes(query);
         const matchesResource = booking.resourceName.toLowerCase().includes(query);
         const matchesLocation = booking.location.toLowerCase().includes(query);
-        return matchesId || matchesCustomer || matchesCompany || matchesResource || matchesLocation;
+        const matchesState = loc.state.toLowerCase().includes(query);
+        const matchesCity = loc.city.toLowerCase().includes(query);
+        const matchesArea = loc.area.toLowerCase().includes(query);
+        const matchesRoute = loc.routeName.toLowerCase().includes(query);
+        return (
+          matchesId ||
+          matchesCustomer ||
+          matchesCompany ||
+          matchesResource ||
+          matchesLocation ||
+          matchesState ||
+          matchesCity ||
+          matchesArea ||
+          matchesRoute
+        );
       }
 
       return true;
     });
-  }, [bookings, activeTab, selectedSource, selectedStatus, startDateFilter, endDateFilter, searchQuery]);
+  }, [
+    bookings,
+    sectionView,
+    activeTab,
+    selectedSource,
+    selectedStatus,
+    startDateFilter,
+    endDateFilter,
+    selectedState,
+    selectedCity,
+    selectedArea,
+    selectedRoute,
+    searchQuery,
+  ]);
 
   // Sorted bookings
   const sortedBookings = useMemo(() => {
@@ -277,6 +446,31 @@ export const BookingsPage: React.FC = () => {
       setSelectedBooking((prev) => (prev ? { ...prev, status: 'CONFIRMED' } : null));
     }
     showToast(`Booking ${booking.id} confirmed.`);
+  };
+
+  const handleConvertQuotationToInvoice = (booking: BookingRecord) => {
+    // 1. Promote booking to CONFIRMED with 50% advance due
+    const updated = bookings.map((b) =>
+      b.id === booking.id
+        ? {
+            ...b,
+            status: 'CONFIRMED' as const,
+            paymentStatus: 'PARTIALLY_PAID' as const,
+          }
+        : b
+    );
+    setBookings(updated);
+    try {
+      localStorage.setItem('sodaars_provider_bookings', JSON.stringify(updated));
+    } catch {}
+
+    // 2. Generate and open Tax Invoice modal
+    const inv = getInvoiceForBooking({ ...booking, status: 'CONFIRMED' });
+    setSelectedInvoiceRecord(inv);
+    setIsInvoiceModalOpen(true);
+    showToast(
+      `Quotation approved! Converted into Confirmed Booking & Tax Invoice ${inv.id}.`
+    );
   };
 
   const handleDeclineAction = (booking: BookingRecord, declineReason: string) => {
@@ -368,7 +562,11 @@ export const BookingsPage: React.FC = () => {
     selectedStatus !== 'ALL' ||
     activeTab !== 'All' ||
     startDateFilter !== '' ||
-    endDateFilter !== '';
+    endDateFilter !== '' ||
+    selectedState !== 'ALL' ||
+    selectedCity !== 'ALL' ||
+    selectedArea !== 'ALL' ||
+    selectedRoute !== 'ALL';
 
   const resetFilters = () => {
     setSearchQuery('');
@@ -377,6 +575,10 @@ export const BookingsPage: React.FC = () => {
     setActiveTab('All');
     setStartDateFilter('');
     setEndDateFilter('');
+    setSelectedState('ALL');
+    setSelectedCity('ALL');
+    setSelectedArea('ALL');
+    setSelectedRoute('ALL');
   };
 
   const formatCurrency = (amt: number) => {
@@ -591,6 +793,126 @@ export const BookingsPage: React.FC = () => {
         {/* 2. PIPELINE TABS, VIEW SWITCHER & SEARCH CONTROLS                         */}
         {/* ========================================================================= */}
         <div className="bg-white rounded-xl border border-[#E5E5E5] shadow-xs p-4 space-y-4">
+          {/* PRIMARY COMMERCIAL SECTION SWITCHER BAR */}
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-[#FAFAF9] p-2 rounded-xl border border-[#E5E5E5]">
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none flex-wrap">
+              <button
+                type="button"
+                onClick={() => {
+                  setSectionView('all');
+                  setSearchParams({});
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  sectionView === 'all'
+                    ? 'bg-white text-[#171717] shadow-xs border border-[#E5E5E5]'
+                    : 'text-[#525252] hover:text-[#171717] hover:bg-white/60'
+                }`}
+              >
+                <Layers size={13} className={sectionView === 'all' ? 'text-[#EA580C]' : 'text-[#737373]'} />
+                <span>All Bookings</span>
+                <span className="text-[10px] bg-stone-100 text-stone-700 font-mono px-1.5 py-0.2 rounded-full">
+                  {bookings.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSectionView('quotations');
+                  setSearchParams({ view: 'quotations' });
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  sectionView === 'quotations'
+                    ? 'bg-orange-50 text-[#EA580C] shadow-xs border border-orange-300 ring-1 ring-orange-200'
+                    : 'text-[#525252] hover:text-[#EA580C] hover:bg-orange-50/50'
+                }`}
+              >
+                <FileText size={13} className="text-[#EA580C]" />
+                <span>Quotations &amp; Proposals</span>
+                <span className="text-[10px] bg-orange-100 text-[#EA580C] font-mono px-1.5 py-0.2 rounded-full font-bold">
+                  {summaryMetrics.underReview}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSectionView('direct');
+                  setSearchParams({ view: 'direct' });
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  sectionView === 'direct'
+                    ? 'bg-white text-[#171717] shadow-xs border border-[#E5E5E5]'
+                    : 'text-[#525252] hover:text-[#171717] hover:bg-white/60'
+                }`}
+              >
+                <CheckCircle2 size={13} className="text-emerald-600" />
+                <span>My Direct Bookings</span>
+                <span className="text-[10px] bg-stone-100 text-stone-700 font-mono px-1.5 py-0.2 rounded-full">
+                  {bookings.filter((b) => b.source === 'Provider').length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSectionView('marketplace');
+                  setSearchParams({ view: 'marketplace' });
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  sectionView === 'marketplace'
+                    ? 'bg-white text-amber-800 shadow-xs border border-amber-300'
+                    : 'text-[#525252] hover:text-amber-800 hover:bg-amber-50/50'
+                }`}
+              >
+                <ShoppingBag size={13} className="text-amber-700" />
+                <span>Marketplace Bookings</span>
+                <span className="text-[10px] bg-amber-100 text-amber-800 font-mono px-1.5 py-0.2 rounded-full">
+                  {bookings.filter((b) => b.source === 'Marketplace').length}
+                </span>
+              </button>
+            </div>
+
+            <Link
+              to="/panel/finance"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors shrink-0"
+            >
+              <Receipt size={13} />
+              <span>Invoices Ledger →</span>
+            </Link>
+          </div>
+
+          {/* Quotations Helper Banner */}
+          {sectionView === 'quotations' && (
+            <div className="p-3.5 rounded-xl bg-orange-50/70 border border-orange-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-150">
+              <div className="flex items-start sm:items-center gap-2.5">
+                <div className="p-2 rounded-lg bg-orange-100 text-[#EA580C] shrink-0 mt-0.5 sm:mt-0">
+                  <FileText size={16} />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-[#171717] flex items-center gap-2">
+                    <span>Quotations &amp; Pre-Sale Estimates Pipeline</span>
+                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-orange-100 text-[#EA580C] border border-orange-200">
+                      {summaryMetrics.underReview} Active Proposals
+                    </span>
+                  </h4>
+                  <p className="text-[11px] text-[#525252] mt-0.5 leading-relaxed">
+                    These proposals have 48–72h soft calendar holds. Once approved by the advertiser, click <strong>"Approve &amp; Convert to Invoice"</strong> to lock the site and issue the official tax bill.
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => navigate('/panel/bookings/create?type=quotation')}
+                leftIcon={<Plus size={13} />}
+                className="text-xs bg-[#EA580C] hover:bg-[#C2410C] shrink-0 font-bold"
+              >
+                + New Quotation
+              </Button>
+            </div>
+          )}
+
           {/* Top row: Pipeline Tabs, Source Selector & View Mode Switcher */}
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-[#E5E5E5] pb-4">
             {/* Pipeline Tabs */}
@@ -757,6 +1079,174 @@ export const BookingsPage: React.FC = () => {
               </Button>
             )}
           </div>
+
+          {/* Geographic & Corridor Filter Row */}
+          <div className="flex flex-wrap items-center gap-2 pt-2.5 border-t border-[#E2E8F0]">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-[#1A2435] pr-1">
+              <MapPin size={13} className="text-[#E11D2E]" />
+              <span>Location:</span>
+            </div>
+
+            {/* State Filter */}
+            <select
+              value={selectedState}
+              onChange={(e) => {
+                setSelectedState(e.target.value);
+                setSelectedCity('ALL');
+                setSelectedArea('ALL');
+                setSelectedRoute('ALL');
+              }}
+              className={`text-xs h-8 px-2.5 py-1 rounded-md border text-[#1A2435] focus:outline-none focus:border-[#E11D2E] transition-colors ${
+                selectedState !== 'ALL'
+                  ? 'bg-red-50/70 border-red-300 font-bold'
+                  : 'bg-white border-[#E2E8F0]'
+              }`}
+              title="Filter by State (Tax Jurisdiction)"
+            >
+              <option value="ALL">All States ({availableStates.length})</option>
+              {availableStates.map((st) => (
+                <option key={st} value={st}>
+                  {st}
+                </option>
+              ))}
+            </select>
+
+            {/* City Filter */}
+            <select
+              value={selectedCity}
+              onChange={(e) => {
+                setSelectedCity(e.target.value);
+                setSelectedArea('ALL');
+                setSelectedRoute('ALL');
+              }}
+              className={`text-xs h-8 px-2.5 py-1 rounded-md border text-[#1A2435] focus:outline-none focus:border-[#E11D2E] transition-colors ${
+                selectedCity !== 'ALL'
+                  ? 'bg-red-50/70 border-red-300 font-bold'
+                  : 'bg-white border-[#E2E8F0]'
+              }`}
+              title="Filter by City / Town"
+            >
+              <option value="ALL">
+                {selectedState !== 'ALL'
+                  ? `All Cities in ${selectedState} (${availableCities.length})`
+                  : `All Cities (${availableCities.length})`}
+              </option>
+              {availableCities.map((city) => (
+                <option key={city} value={city}>
+                  {city}
+                </option>
+              ))}
+            </select>
+
+            {/* Area Filter */}
+            <select
+              value={selectedArea}
+              onChange={(e) => {
+                setSelectedArea(e.target.value);
+                setSelectedRoute('ALL');
+              }}
+              className={`text-xs h-8 px-2.5 py-1 rounded-md border text-[#1A2435] focus:outline-none focus:border-[#E11D2E] transition-colors ${
+                selectedArea !== 'ALL'
+                  ? 'bg-red-50/70 border-red-300 font-bold'
+                  : 'bg-white border-[#E2E8F0]'
+              }`}
+              title="Filter by Locality / Area"
+            >
+              <option value="ALL">
+                {selectedCity !== 'ALL'
+                  ? `All Areas in ${selectedCity} (${availableAreas.length})`
+                  : `All Areas (${availableAreas.length})`}
+              </option>
+              {availableAreas.map((area) => (
+                <option key={area} value={area}>
+                  {area}
+                </option>
+              ))}
+            </select>
+
+            {/* Route / Arterial Corridor Filter */}
+            <select
+              value={selectedRoute}
+              onChange={(e) => setSelectedRoute(e.target.value)}
+              className={`text-xs h-8 px-2.5 py-1 rounded-md border text-[#1A2435] focus:outline-none focus:border-[#E11D2E] transition-colors ${
+                selectedRoute !== 'ALL'
+                  ? 'bg-red-50/70 border-red-300 font-bold'
+                  : 'bg-white border-[#E2E8F0]'
+              }`}
+              title="Filter by Arterial Route / Transit Corridor"
+            >
+              <option value="ALL">
+                {selectedArea !== 'ALL'
+                  ? `All Routes in ${selectedArea} (${availableRoutes.length})`
+                  : selectedCity !== 'ALL'
+                  ? `All Routes in ${selectedCity} (${availableRoutes.length})`
+                  : `All Routes / Corridors (${availableRoutes.length})`}
+              </option>
+              {availableRoutes.map((rt) => (
+                <option key={rt} value={rt}>
+                  🛣️ {rt}
+                </option>
+              ))}
+            </select>
+
+            {/* Quick active pill badges with (x) to remove */}
+            {selectedState !== 'ALL' && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedState('ALL');
+                  setSelectedCity('ALL');
+                  setSelectedArea('ALL');
+                  setSelectedRoute('ALL');
+                }}
+                className="inline-flex items-center gap-1 text-[11px] font-semibold bg-red-100/70 text-[#E11D2E] hover:bg-red-200/80 px-2 py-0.5 rounded-full border border-red-200 transition-colors"
+                title="Clear State filter"
+              >
+                <span>State: {selectedState}</span>
+                <span className="font-mono text-xs">×</span>
+              </button>
+            )}
+            {selectedCity !== 'ALL' && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedCity('ALL');
+                  setSelectedArea('ALL');
+                  setSelectedRoute('ALL');
+                }}
+                className="inline-flex items-center gap-1 text-[11px] font-semibold bg-red-100/70 text-[#E11D2E] hover:bg-red-200/80 px-2 py-0.5 rounded-full border border-red-200 transition-colors"
+                title="Clear City filter"
+              >
+                <span>City: {selectedCity}</span>
+                <span className="font-mono text-xs">×</span>
+              </button>
+            )}
+            {selectedArea !== 'ALL' && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedArea('ALL');
+                  setSelectedRoute('ALL');
+                }}
+                className="inline-flex items-center gap-1 text-[11px] font-semibold bg-red-100/70 text-[#E11D2E] hover:bg-red-200/80 px-2 py-0.5 rounded-full border border-red-200 transition-colors"
+                title="Clear Area filter"
+              >
+                <span>Area: {selectedArea}</span>
+                <span className="font-mono text-xs">×</span>
+              </button>
+            )}
+            {selectedRoute !== 'ALL' && (
+              <button
+                type="button"
+                onClick={() => setSelectedRoute('ALL')}
+                className="inline-flex items-center gap-1 text-[11px] font-semibold bg-red-100/70 text-[#E11D2E] hover:bg-red-200/80 px-2 py-0.5 rounded-full border border-red-200 transition-colors"
+                title="Clear Route filter"
+              >
+                <span>Route: {selectedRoute}</span>
+                <span className="font-mono text-xs">×</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* ========================================================================= */}
@@ -771,7 +1261,7 @@ export const BookingsPage: React.FC = () => {
               No bookings match your active filters.
             </h3>
             <p className="text-xs text-[#737373] max-w-md mb-4 leading-relaxed">
-              Try adjusting your search query, clearing the date range, or switching pipeline tabs.
+              Try adjusting your search query, clearing the location or corridor filters, clearing the date range, or switching pipeline tabs.
             </p>
             <Button
               variant="secondary"
@@ -827,12 +1317,29 @@ export const BookingsPage: React.FC = () => {
                           </p>
                         </div>
 
-                        <div className="flex items-center justify-between text-[10px] text-[#737373] pt-1 border-t border-stone-100">
-                          <span className="flex items-center gap-1">
-                            <MapPin size={10} className="text-[#EA580C]" /> {b.location}
-                          </span>
-                          <span>{b.startDate}</span>
-                        </div>
+                        {(() => {
+                          const loc = getBookingLocation(b);
+                          return (
+                            <div className="pt-1 border-t border-stone-100 space-y-1">
+                              <div className="flex items-center justify-between text-[10px] text-[#737373]">
+                                <span className="flex items-center gap-1 font-medium text-[#1A2435] truncate" title={loc.displayLocation}>
+                                  <MapPin size={10} className="text-[#E11D2E] shrink-0" /> {loc.city} • {loc.area}
+                                </span>
+                                <span className="shrink-0">{b.startDate}</span>
+                              </div>
+                              {loc.routeName && (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedRoute(loc.routeName)}
+                                  title={`Filter bookings along ${loc.routeName}`}
+                                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-slate-100 hover:bg-red-50 text-[#1A2435] hover:text-[#E11D2E] border border-slate-200 transition-colors"
+                                >
+                                  <span>🛣️ {loc.routeName}</span>
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })()}
 
                         {/* Kanban Actions */}
                         <div className="flex items-center justify-between gap-1 pt-2 border-t border-stone-100">
@@ -911,11 +1418,31 @@ export const BookingsPage: React.FC = () => {
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between text-[10px] text-[#737373] pt-1 border-t border-stone-100">
-                          <span className="flex items-center gap-1">
-                            <Calendar size={10} /> {b.startDate} → {b.endDate}
-                          </span>
-                        </div>
+                        {(() => {
+                          const loc = getBookingLocation(b);
+                          return (
+                            <div className="pt-1 border-t border-stone-100 space-y-1">
+                              <div className="flex items-center justify-between text-[10px] text-[#737373]">
+                                <span className="flex items-center gap-1 font-medium text-[#1A2435] truncate" title={loc.displayLocation}>
+                                  <MapPin size={10} className="text-[#E11D2E] shrink-0" /> {loc.city} • {loc.area}
+                                </span>
+                                <span className="flex items-center gap-1 text-[10px] text-[#737373]">
+                                  <Calendar size={10} /> {b.startDate} → {b.endDate}
+                                </span>
+                              </div>
+                              {loc.routeName && (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedRoute(loc.routeName)}
+                                  title={`Filter bookings along ${loc.routeName}`}
+                                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-slate-100 hover:bg-red-50 text-[#1A2435] hover:text-[#E11D2E] border border-slate-200 transition-colors"
+                                >
+                                  <span>🛣️ {loc.routeName}</span>
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })()}
 
                         {/* Kanban Actions: Push to Campaign & Invoices */}
                         <div className="flex items-center justify-between gap-1 pt-2 border-t border-stone-100">
@@ -997,10 +1524,32 @@ export const BookingsPage: React.FC = () => {
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between text-[10px] text-[#737373] pt-1 border-t border-stone-100">
-                          <span>Ends: {b.endDate}</span>
-                          <span className="text-emerald-700 font-semibold">POP Verified</span>
-                        </div>
+                        {(() => {
+                          const loc = getBookingLocation(b);
+                          return (
+                            <div className="pt-1 border-t border-stone-100 space-y-1">
+                              <div className="flex items-center justify-between text-[10px] text-[#737373]">
+                                <span className="flex items-center gap-1 font-medium text-[#1A2435] truncate" title={loc.displayLocation}>
+                                  <MapPin size={10} className="text-[#E11D2E] shrink-0" /> {loc.city} • {loc.area}
+                                </span>
+                                <span className="text-emerald-700 font-semibold shrink-0">POP Verified</span>
+                              </div>
+                              <div className="flex items-center justify-between text-[10px] text-[#737373]">
+                                <span>Ends: {b.endDate}</span>
+                                {loc.routeName && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedRoute(loc.routeName)}
+                                    title={`Filter bookings along ${loc.routeName}`}
+                                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-slate-100 hover:bg-red-50 text-[#1A2435] hover:text-[#E11D2E] border border-slate-200 transition-colors"
+                                  >
+                                    <span>🛣️ {loc.routeName}</span>
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
 
                         <div className="flex items-center justify-between gap-1 pt-2 border-t border-stone-100">
                           <Button
@@ -1067,6 +1616,30 @@ export const BookingsPage: React.FC = () => {
                             {formatCurrency(price)}
                           </div>
                         </div>
+
+                        {(() => {
+                          const loc = getBookingLocation(b);
+                          return (
+                            <div className="pt-1 border-t border-stone-100 space-y-1">
+                              <div className="flex items-center justify-between text-[10px] text-[#737373]">
+                                <span className="flex items-center gap-1 font-medium text-[#1A2435] truncate" title={loc.displayLocation}>
+                                  <MapPin size={10} className="text-[#E11D2E] shrink-0" /> {loc.city} • {loc.area}
+                                </span>
+                                <span className="shrink-0">{b.endDate}</span>
+                              </div>
+                              {loc.routeName && (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedRoute(loc.routeName)}
+                                  title={`Filter bookings along ${loc.routeName}`}
+                                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-slate-100 hover:bg-red-50 text-[#1A2435] hover:text-[#E11D2E] border border-slate-200 transition-colors"
+                                >
+                                  <span>🛣️ {loc.routeName}</span>
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })()}
 
                         <div className="flex items-center justify-between gap-1 pt-2 border-t border-stone-100">
                           <Button
@@ -1198,12 +1771,35 @@ export const BookingsPage: React.FC = () => {
                           </span>
                         </td>
 
-                        {/* 4. LOCATION */}
-                        <td className="py-3.5 px-4 text-[#525252] whitespace-nowrap">
-                          <div className="flex items-center gap-1">
-                            <MapPin size={11} className="text-[#EA580C] shrink-0" />
-                            <span>{b.location}</span>
-                          </div>
+                        {/* 4. LOCATION & CORRIDOR */}
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          {(() => {
+                            const loc = getBookingLocation(b);
+                            return (
+                              <div>
+                                <div className="flex items-center gap-1 font-bold text-[#1A2435]">
+                                  <MapPin size={11} className="text-[#E11D2E] shrink-0" />
+                                  <span>{loc.city} • {loc.area}</span>
+                                </div>
+                                <div className="text-[10px] text-[#64748B] pl-3.5">
+                                  {loc.state}
+                                </div>
+                                {loc.routeName && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedRoute(loc.routeName);
+                                    }}
+                                    title={`Click to filter bookings along ${loc.routeName}`}
+                                    className="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 hover:bg-red-50 text-[#1A2435] hover:text-[#E11D2E] border border-slate-200 hover:border-red-200 transition-colors cursor-pointer"
+                                  >
+                                    <span>🛣️ {loc.routeName}</span>
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          })()}
                         </td>
 
                         {/* 5. FLIGHT SCHEDULE */}
@@ -1294,15 +1890,17 @@ export const BookingsPage: React.FC = () => {
                               </Button>
                             ) : null}
 
-                            {/* CONFIRM ACTION (For Under Review / New) */}
+                            {/* CONFIRM / CONVERT TO INVOICE ACTION (For Quotations & Under Review) */}
                             {canConfirm && (
                               <Button
-                                variant="outline"
+                                variant="primary"
                                 size="sm"
-                                className="h-7 px-2 text-[11px] border-emerald-300 text-emerald-800 hover:bg-emerald-50 font-semibold"
-                                onClick={() => handleOpenConfirm(b)}
+                                className="h-7 px-2.5 text-[11px] bg-emerald-700 hover:bg-emerald-800 text-white font-bold shadow-2xs"
+                                onClick={() => handleConvertQuotationToInvoice(b)}
+                                title="Approve quotation and convert directly into Confirmed Booking with Tax Invoice"
                               >
-                                Confirm
+                                <CheckCircle2 size={12} className="mr-1" />
+                                Convert to Invoice
                               </Button>
                             )}
 
@@ -1360,9 +1958,9 @@ export const BookingsPage: React.FC = () => {
                     onChange={(e) => setPageSize(Number(e.target.value))}
                     className="h-7 text-xs rounded border border-[#E5E5E5] bg-white px-2 text-[#171717] focus:outline-none"
                   >
-                    <option value={5}>5</option>
-                    <option value={10}>10</option>
-                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                    <option value={200}>200</option>
                   </select>
                 </div>
               </div>
@@ -1450,7 +2048,7 @@ export const BookingsPage: React.FC = () => {
           setSelectedQuotationBooking(null);
         }}
         booking={selectedQuotationBooking}
-        onConfirmBooking={handleConfirmAction}
+        onConfirmBooking={handleConvertQuotationToInvoice}
       />
 
       {/* Official GST Tax Invoice Viewer Modal */}

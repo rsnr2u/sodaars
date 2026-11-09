@@ -1,11 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
   Plus,
   Calendar,
   Layers,
-  ArrowLeftRight,
   Camera,
   BarChart3,
   Receipt,
@@ -17,6 +16,8 @@ import {
   MapPin,
   ExternalLink,
   ChevronRight,
+  IndianRupee,
+  FileText,
 } from 'lucide-react';
 import { SAMPLE_RESOURCES } from '../data/sampleInventory';
 import { SAMPLE_BOOKINGS } from '../data/sampleBookings';
@@ -30,13 +31,13 @@ import { AdvertisingResource } from '../types/resource';
 
 export const DashboardPage: React.FC = () => {
   // 1. DYNAMIC INVENTORY & OCCUPANCY METRICS
-  const totalAssets = SAMPLE_RESOURCES.length; // 14
-  const activeAssets = SAMPLE_RESOURCES.filter((res: AdvertisingResource) => res.status === 'Active').length; // 13
-  const availableCount = 3;
-  const bookedCount = 8;
-  const holdCount = 2;
-  const maintenanceCount = 1;
-  const occupancyPercentage = Math.round(((bookedCount + holdCount) / totalAssets) * 100); // 71%
+  const totalAssets = SAMPLE_RESOURCES.length; // 450
+  const activeAssets = SAMPLE_RESOURCES.filter((res: AdvertisingResource) => res.status === 'Active').length;
+  const maintenanceCount = totalAssets - activeAssets;
+  const bookedCount = Math.round(activeAssets * 0.65);
+  const holdCount = Math.round(activeAssets * 0.10);
+  const availableCount = Math.max(0, activeAssets - bookedCount - holdCount);
+  const occupancyPercentage = Math.round(((bookedCount + holdCount) / totalAssets) * 100);
 
   // 2. DYNAMIC BOOKINGS & CAMPAIGNS
   const recentBookings = SAMPLE_BOOKINGS.slice(0, 5);
@@ -47,6 +48,57 @@ export const DashboardPage: React.FC = () => {
   const totalPaidMtd = SAMPLE_INVOICE_RECORDS.reduce((sum, inv) => sum + inv.paidAmount, 0);
   const totalPendingAr = SAMPLE_INVOICE_RECORDS.reduce((sum, inv) => sum + inv.balanceDue, 0);
   const collectionPercentage = Math.round((totalPaidMtd / totalInvoicedMtd) * 100);
+
+  // Heatmap week toggle & monthly hover
+  const [occupancyPeriod, setOccupancyPeriod] = useState<'last12' | 'next12'>('last12');
+  const [hoveredMonth, setHoveredMonth] = useState<number | null>(9); // Default Oct (index 9)
+
+  // Monthly Confirmed Revenue (in Lakhs) for 2026
+  const monthlyRevenue = [
+    { month: 'Jan', revenue: 26.5, label: '₹26.5L' },
+    { month: 'Feb', revenue: 29.2, label: '₹29.2L' },
+    { month: 'Mar', revenue: 34.8, label: '₹34.8L' },
+    { month: 'Apr', revenue: 31.4, label: '₹31.4L' },
+    { month: 'May', revenue: 37.9, label: '₹37.9L' },
+    { month: 'Jun', revenue: 41.2, label: '₹41.2L' },
+    { month: 'Jul', revenue: 39.5, label: '₹39.5L' },
+    { month: 'Aug', revenue: 43.8, label: '₹43.8L' },
+    { month: 'Sep', revenue: 46.1, label: '₹46.1L' },
+    { month: 'Oct', revenue: 48.6, label: '₹48.6L', current: true },
+    { month: 'Nov', revenue: 52.0, label: '₹52.0L', projected: true },
+    { month: 'Dec', revenue: 58.4, label: '₹58.4L', projected: true },
+  ];
+
+  // 12 Weeks Utilization Data
+  const last12WeeksData = [
+    { week: 'W32', percent: 62 },
+    { week: 'W33', percent: 64 },
+    { week: 'W34', percent: 65 },
+    { week: 'W35', percent: 67 },
+    { week: 'W36', percent: 66 },
+    { week: 'W37', percent: 68 },
+    { week: 'W38', percent: 70 },
+    { week: 'W39', percent: 69 },
+    { week: 'W40', percent: 71 },
+    { week: 'W41', percent: 70 },
+    { week: 'W42', percent: 72 },
+    { week: 'W43', percent: 74 },
+  ];
+
+  const next12WeeksData = [
+    { week: 'W44', percent: 75 },
+    { week: 'W45', percent: 73 },
+    { week: 'W46', percent: 70 },
+    { week: 'W47', percent: 68 },
+    { week: 'W48', percent: 66 },
+    { week: 'W49', percent: 69 },
+    { week: 'W50', percent: 74 },
+    { week: 'W51', percent: 78 },
+    { week: 'W52', percent: 82 },
+    { week: 'W01', percent: 67 },
+    { week: 'W02', percent: 65 },
+    { week: 'W03', percent: 63 },
+  ];
 
   // 4. ACTION REQUIRED COUNTERS
   const actionItems = [
@@ -105,18 +157,18 @@ export const DashboardPage: React.FC = () => {
       {/* ========================================================================= */}
       {/* 1. DASHBOARD HEADER & WELCOME STRIP                                       */}
       {/* ========================================================================= */}
-      <section className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pb-5 border-b border-[#E5E5E5]">
+      <section className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pb-5 border-b border-[#E2E8F0]">
         <div className="flex flex-col gap-1 max-w-3xl">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-[#EA580C] bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#E11D2E] bg-red-50 px-2 py-0.5 rounded border border-red-200">
               OPERATING SYSTEM • PROVIDER CONSOLE
             </span>
-            <span className="text-xs text-[#737373]">Live Network Status: Normal</span>
+            <span className="text-xs text-[#64748B]">Live Network Status: Normal</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#171717] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1A2435] tracking-tight">
             Executive Operations Dashboard
           </h1>
-          <p className="text-xs sm:text-sm text-[#525252]">
+          <p className="text-xs sm:text-sm text-[#475569]">
             Real-time capacity utilization, booking requests, campaign proof verification, and financial realization.
           </p>
         </div>
@@ -124,13 +176,13 @@ export const DashboardPage: React.FC = () => {
         {/* Quick Top Actions */}
         <div className="flex items-center gap-2.5 shrink-0">
           <Link to="/panel/bookings/create">
-            <button className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white border border-[#E5E5E5] text-[#171717] hover:bg-[#F5F5F4] transition-colors shadow-2xs text-xs font-semibold cursor-pointer">
-              <Plus size={14} className="text-[#EA580C]" />
+            <button className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white border border-[#CBD5E1] text-[#1A2435] hover:bg-[#F4F6F8] transition-colors shadow-2xs text-xs font-semibold cursor-pointer">
+              <Plus size={14} className="text-[#E11D2E]" />
               <span>Create Booking</span>
             </button>
           </Link>
           <Link to="/panel/resources">
-            <button className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#EA580C] text-white hover:bg-[#C2410C] transition-colors shadow-xs text-xs font-semibold cursor-pointer">
+            <button className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#E11D2E] text-white hover:bg-[#C51323] transition-colors shadow-xs text-xs font-semibold cursor-pointer">
               <Plus size={14} />
               <span>Add Resource</span>
             </button>
@@ -139,41 +191,69 @@ export const DashboardPage: React.FC = () => {
       </section>
 
       {/* ========================================================================= */}
-      {/* 2. BLOCK 1: EXECUTIVE KPI PULSE STRIP (DYNAMIC CALCULATIONS)              */}
+      {/* 2. REFINED 5 MINIMALIST KPI CARDS (CLEAN HOARDSPACE STYLE)                */}
       {/* ========================================================================= */}
       <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
-        {/* Total Inventory */}
+        {/* 1. Confirmed Revenue */}
         <div className="bg-white rounded-xl p-4 border border-[#E5E5E5] shadow-xs flex flex-col justify-between hover:border-stone-300 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#737373]">
-              TOTAL ASSETS
+              REVENUE (MTD)
             </span>
-            <div className="p-1.5 rounded-lg bg-stone-100 text-[#171717]">
+            <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <IndianRupee size={14} />
+            </div>
+          </div>
+          <div className="my-2.5">
+            <div className="text-2xl sm:text-3xl font-extrabold text-[#171717] leading-none">
+              ₹48.6L
+            </div>
+            <div className="text-[11px] text-emerald-600 mt-1 font-semibold flex items-center gap-1">
+              <span>+8.4% MoM</span>
+              <span className="text-[#A3A3A3] font-normal">• 257 Bookings</span>
+            </div>
+          </div>
+          <Link
+            to="/panel/finance"
+            className="text-[11px] font-semibold text-[#EA580C] hover:underline flex items-center gap-1"
+          >
+            <span>Finance &amp; Ledger</span>
+            <ArrowRight size={11} />
+          </Link>
+        </div>
+
+        {/* 2. Active Hoardings */}
+        <div className="bg-white rounded-xl p-4 border border-[#E5E5E5] shadow-xs flex flex-col justify-between hover:border-stone-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#737373]">
+              ACTIVE HOARDINGS
+            </span>
+            <div className="p-1.5 rounded-lg bg-stone-100 text-[#171717] border border-stone-200">
               <Layers size={14} />
             </div>
           </div>
           <div className="my-2.5">
             <div className="text-2xl sm:text-3xl font-extrabold text-[#171717] leading-none">
-              {totalAssets}
+              {activeAssets}
             </div>
             <div className="text-[11px] text-[#737373] mt-1 font-medium">
-              {activeAssets} Active • {totalAssets - activeAssets} Maintenance
+              88% of {totalAssets} Total Fleet
             </div>
           </div>
           <Link
             to="/panel/resources"
             className="text-[11px] font-semibold text-[#EA580C] hover:underline flex items-center gap-1"
           >
-            <span>View Inventory</span>
+            <span>My Inventory</span>
             <ArrowRight size={11} />
           </Link>
         </div>
 
-        {/* Occupancy Rate */}
+        {/* 3. Confirmed Occupancy */}
         <div className="bg-white rounded-xl p-4 border border-[#E5E5E5] shadow-xs flex flex-col justify-between hover:border-stone-300 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#737373]">
-              OCCUPANCY RATE
+              FLEET OCCUPANCY
             </span>
             <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
               <TrendingUp size={14} />
@@ -184,8 +264,8 @@ export const DashboardPage: React.FC = () => {
               {occupancyPercentage}%
             </div>
             <div className="text-[11px] text-emerald-600 mt-1 font-semibold flex items-center gap-1">
-              <span>+4.2% MoM</span>
-              <span className="text-[#A3A3A3] font-normal">• 10 of 14 Units Active</span>
+              <span>{bookedCount + holdCount} Units</span>
+              <span className="text-[#A3A3A3] font-normal">• {availableCount} Vacant</span>
             </div>
           </div>
           <Link
@@ -197,90 +277,351 @@ export const DashboardPage: React.FC = () => {
           </Link>
         </div>
 
-        {/* Active Bookings */}
+        {/* 4. Quotations in Pipeline */}
         <div className="bg-white rounded-xl p-4 border border-[#E5E5E5] shadow-xs flex flex-col justify-between hover:border-stone-300 transition-all">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#737373]">
-              ACTIVE BOOKINGS
+              QUOTATIONS
             </span>
             <div className="p-1.5 rounded-lg bg-orange-50 text-[#EA580C] border border-orange-200">
-              <ArrowLeftRight size={14} />
+              <FileText size={14} />
             </div>
           </div>
           <div className="my-2.5">
             <div className="text-2xl sm:text-3xl font-extrabold text-[#171717] leading-none">
-              {SAMPLE_BOOKINGS.filter((b) => b.status === 'ACTIVE' || b.status === 'CONFIRMED').length}
+              14
             </div>
-            <div className="text-[11px] text-[#737373] mt-1 font-medium">
-              3 Channels • Direct &amp; Marketplace
+            <div className="text-[11px] text-[#EA580C] mt-1 font-semibold flex items-center gap-1">
+              <span>₹24.8L Pipeline</span>
+              <span className="text-[#A3A3A3] font-normal">• Soft Holds</span>
             </div>
           </div>
           <Link
-            to="/panel/bookings"
+            to="/panel/bookings?view=quotations"
             className="text-[11px] font-semibold text-[#EA580C] hover:underline flex items-center gap-1"
           >
-            <span>Bookings Console</span>
+            <span>Quotations Ledger</span>
             <ArrowRight size={11} />
           </Link>
         </div>
 
-        {/* Live Campaigns */}
-        <div className="bg-white rounded-xl p-4 border border-[#E5E5E5] shadow-xs flex flex-col justify-between hover:border-stone-300 transition-all">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#737373]">
-              LIVE CAMPAIGNS
-            </span>
-            <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200">
-              <Camera size={14} />
-            </div>
-          </div>
-          <div className="my-2.5">
-            <div className="text-2xl sm:text-3xl font-extrabold text-[#171717] leading-none">
-              {SAMPLE_CAMPAIGNS.length}
-            </div>
-            <div className="text-[11px] text-[#737373] mt-1 font-medium">
-              100% Mounted • Rigger Verified
-            </div>
-          </div>
-          <Link
-            to="/panel/campaigns"
-            className="text-[11px] font-semibold text-[#EA580C] hover:underline flex items-center gap-1"
-          >
-            <span>Proof of Performance</span>
-            <ArrowRight size={11} />
-          </Link>
-        </div>
-
-        {/* Monthly Revenue Invoiced */}
+        {/* 5. Invoices & Pending AR */}
         <div className="bg-white rounded-xl p-4 border border-[#E5E5E5] shadow-xs flex flex-col justify-between hover:border-stone-300 transition-all col-span-2 sm:col-span-1">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#737373]">
-              INVOICED (MTD)
+              PENDING INVOICES
             </span>
-            <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <div className="p-1.5 rounded-lg bg-rose-50 text-rose-700 border border-rose-200">
               <Receipt size={14} />
             </div>
           </div>
           <div className="my-2.5">
             <div className="text-2xl sm:text-3xl font-extrabold text-[#171717] leading-none">
-              ₹{(totalInvoicedMtd / 100000).toFixed(1)}L
+              ₹{(totalPendingAr / 100000).toFixed(1)}L
             </div>
-            <div className="text-[11px] text-emerald-600 mt-1 font-semibold">
-              {collectionPercentage}% Collected • ₹{(totalPaidMtd / 100000).toFixed(1)}L Recd
+            <div className="text-[11px] text-rose-600 mt-1 font-semibold">
+              3 Invoices Overdue
             </div>
           </div>
           <Link
             to="/panel/finance"
             className="text-[11px] font-semibold text-[#EA580C] hover:underline flex items-center gap-1"
           >
-            <span>Finance &amp; Ledger</span>
+            <span>View Invoices</span>
             <ArrowRight size={11} />
           </Link>
         </div>
       </section>
 
       {/* ========================================================================= */}
-      {/* 3. BLOCK 2 & BLOCK 3: ACTION REQUIRED + INVENTORY OCCUPANCY HEATMAP       */}
+      {/* 3. METRICS COMPARISON (MONTHLY REVENUE CURVE) + QUICK ACTIONS & BOOKINGS  */}
+      {/* ========================================================================= */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        {/* Left: Monthly Confirmed Revenue Trend (8 cols) */}
+        <div className="lg:col-span-8 bg-white rounded-xl p-5 border border-[#E5E5E5] shadow-xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between pb-3 border-b border-[#E5E5E5]">
+              <div>
+                <h3 className="text-sm font-bold text-[#171717]">
+                  Metrics Comparison
+                </h3>
+                <p className="text-xs text-[#737373] mt-0.5">
+                  Confirmed revenue by month (2026)
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-md bg-stone-100 text-[#171717] border border-stone-200">
+                  Total Confirmed: ₹4.28 Cr YTD
+                </span>
+              </div>
+            </div>
+
+            {/* Interactive SVG Revenue Curve */}
+            <div className="pt-4 pb-2">
+              <div className="h-44 w-full relative">
+                <svg
+                  viewBox="0 0 650 160"
+                  className="w-full h-full overflow-visible"
+                  preserveAspectRatio="none"
+                >
+                  <defs>
+                    <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#E11D2E" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="#E11D2E" stopOpacity="0.0" />
+                    </linearGradient>
+                  </defs>
+
+                  {/* Horizontal grid lines */}
+                  <line x1="30" y1="20" x2="620" y2="20" stroke="#F4F6F8" strokeDasharray="3 3" />
+                  <line x1="30" y1="65" x2="620" y2="65" stroke="#F4F6F8" strokeDasharray="3 3" />
+                  <line x1="30" y1="110" x2="620" y2="110" stroke="#F4F6F8" strokeDasharray="3 3" />
+                  <line x1="30" y1="145" x2="620" y2="145" stroke="#E2E8F0" />
+
+                  {/* SVG Area & Smooth Curve */}
+                  {(() => {
+                    const points = monthlyRevenue.map((d, i) => {
+                      const x = 40 + i * 51.5;
+                      const y = 140 - ((d.revenue - 20) / 45) * 115;
+                      return { x, y, ...d };
+                    });
+
+                    const lineD = points.reduce((acc, p, idx) => {
+                      return idx === 0 ? `M ${p.x} ${p.y}` : `${acc} L ${p.x} ${p.y}`;
+                    }, '');
+
+                    const areaD = `${lineD} L ${points[points.length - 1].x} 145 L ${points[0].x} 145 Z`;
+
+                    return (
+                      <>
+                        {/* Shaded Area */}
+                        <path d={areaD} fill="url(#revenueGradient)" />
+
+                        {/* Stroke Line */}
+                        <path
+                          d={lineD}
+                          fill="none"
+                          stroke="#E11D2E"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+
+                        {/* Interactive Data Dots */}
+                        {points.map((p, idx) => {
+                          const isHovered = hoveredMonth === idx;
+                          const isCurrent = p.current;
+                          return (
+                            <g
+                              key={p.month}
+                              onMouseEnter={() => setHoveredMonth(idx)}
+                              className="cursor-pointer"
+                            >
+                              <circle
+                                cx={p.x}
+                                cy={p.y}
+                                r={isHovered ? 6 : isCurrent ? 5 : 3.5}
+                                fill={isCurrent ? '#E11D2E' : '#FFFFFF'}
+                                stroke={isCurrent ? '#FFFFFF' : '#E11D2E'}
+                                strokeWidth={isHovered ? 2.5 : 2}
+                                className="transition-all duration-150"
+                              />
+                            </g>
+                          );
+                        })}
+                      </>
+                    );
+                  })()}
+                </svg>
+              </div>
+
+              {/* Month X-Axis Labels */}
+              <div className="flex justify-between text-[11px] font-mono text-[#737373] px-2 pt-1">
+                {monthlyRevenue.map((m, idx) => (
+                  <button
+                    key={m.month}
+                    onClick={() => setHoveredMonth(idx)}
+                    className={`px-1 py-0.5 rounded transition-colors ${
+                      hoveredMonth === idx
+                        ? 'text-[#EA580C] font-bold bg-orange-50'
+                        : 'hover:text-[#171717]'
+                    }`}
+                  >
+                    {m.month}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Active Month Readout Banner */}
+          {hoveredMonth !== null && (
+            <div className="mt-3 pt-3 border-t border-[#E5E5E5] flex items-center justify-between text-xs">
+              <span className="text-[#525252]">
+                Selected Month:{' '}
+                <strong className="text-[#171717]">
+                  {monthlyRevenue[hoveredMonth].month} 2026
+                </strong>
+                {monthlyRevenue[hoveredMonth].current && (
+                  <span className="ml-2 text-[10px] bg-orange-100 text-[#EA580C] px-1.5 py-0.2 rounded font-bold">
+                    Active Flight
+                  </span>
+                )}
+              </span>
+              <span className="font-mono font-bold text-[#EA580C] text-sm">
+                Confirmed: {monthlyRevenue[hoveredMonth].label}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Right: Quick Actions & Recent Bookings (4 cols) */}
+        <div className="lg:col-span-4 bg-white rounded-xl p-5 border border-[#E5E5E5] shadow-xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between pb-3 border-b border-[#E5E5E5]">
+              <h3 className="text-sm font-bold text-[#171717]">
+                Quick Actions
+              </h3>
+              <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded bg-stone-100 text-[#525252] border border-stone-200">
+                MD ARTS
+              </span>
+            </div>
+
+            {/* Action Buttons Strip */}
+            <div className="grid grid-cols-2 gap-2 mt-3 mb-4">
+              <Link
+                to="/panel/bookings/create?type=quotation"
+                className="flex items-center justify-center gap-1.5 p-2 rounded-lg bg-red-50 hover:bg-red-100 text-[#E11D2E] border border-red-200 font-bold text-xs transition-colors"
+              >
+                <FileText size={13} />
+                <span>+ Quotation</span>
+              </Link>
+              <Link
+                to="/panel/bookings/create"
+                className="flex items-center justify-center gap-1.5 p-2 rounded-lg bg-[#E11D2E] hover:bg-[#C51323] text-white font-bold text-xs transition-colors shadow-2xs"
+              >
+                <Plus size={13} />
+                <span>+ Booking</span>
+              </Link>
+            </div>
+
+            {/* Recent Bookings Mini List */}
+            <div className="space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#737373] block">
+                Recent Bookings Pipeline
+              </span>
+              <div className="divide-y divide-[#F5F5F4]">
+                {recentBookings.slice(0, 3).map((b) => (
+                  <div key={b.id} className="py-2 flex items-center justify-between gap-2">
+                    <div className="truncate">
+                      <div className="font-bold text-xs text-[#171717] truncate">
+                        {b.companyName}
+                      </div>
+                      <div className="text-[10px] text-[#737373] flex items-center gap-1">
+                        <MapPin size={9} className="text-[#EA580C]" />
+                        <span className="truncate">{b.resourceName}</span>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="font-mono font-bold text-xs text-[#171717]">
+                        ₹{(parseInt(b.pricing.finalInvoicedAmount || '150000', 10) / 100000).toFixed(1)}L
+                      </div>
+                      <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                        {b.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-3 border-t border-[#E5E5E5] mt-3">
+            <Link
+              to="/panel/bookings"
+              className="text-xs font-bold text-[#EA580C] hover:underline flex items-center justify-between"
+            >
+              <span>View All Bookings Console</span>
+              <ChevronRight size={13} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 4. OCCUPANCY HEATMAP (CLEAN 12-WEEK BAR CHART LIKE HOARDSPACE)            */}
+      {/* ========================================================================= */}
+      <section className="bg-white rounded-xl p-5 border border-[#E5E5E5] shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#E5E5E5]">
+          <div>
+            <h3 className="text-sm font-bold text-[#171717]">
+              Occupancy Heatmap
+            </h3>
+            <p className="text-xs text-[#737373] mt-0.5">
+              Utilization across all {totalAssets} active listings
+            </p>
+          </div>
+
+          {/* Average Badge and 12-Week Toggle */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold font-mono px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
+              Avg {occupancyPercentage}%
+            </span>
+            <div className="inline-flex rounded-lg border border-[#E5E5E5] p-0.5 bg-[#FAFAF9]">
+              <button
+                type="button"
+                onClick={() => setOccupancyPeriod('last12')}
+                className={`px-2.5 py-1 text-xs font-bold rounded-md transition-colors ${
+                  occupancyPeriod === 'last12'
+                    ? 'bg-[#171717] text-white shadow-xs'
+                    : 'text-[#737373] hover:text-[#171717]'
+                }`}
+              >
+                Last 12 Weeks
+              </button>
+              <button
+                type="button"
+                onClick={() => setOccupancyPeriod('next12')}
+                className={`px-2.5 py-1 text-xs font-bold rounded-md transition-colors ${
+                  occupancyPeriod === 'next12'
+                    ? 'bg-[#171717] text-white shadow-xs'
+                    : 'text-[#737373] hover:text-[#171717]'
+                }`}
+              >
+                Next 12 Weeks
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* 12-Week Bars */}
+        <div className="pt-5 pb-1">
+          <div className="grid grid-cols-12 gap-2 sm:gap-3 items-end h-32">
+            {(occupancyPeriod === 'last12' ? last12WeeksData : next12WeeksData).map((item) => (
+              <div key={item.week} className="flex flex-col items-center h-full justify-end group">
+                {/* Percentage label */}
+                <span className="text-[10px] font-mono font-bold text-[#737373] group-hover:text-[#EA580C] mb-1 transition-colors">
+                  {item.percent}%
+                </span>
+                {/* Bar */}
+                <div className="w-full bg-[#F5F5F4] rounded-t-md h-24 flex items-end overflow-hidden p-0.5">
+                  <div
+                    style={{ height: `${item.percent}%` }}
+                    className="w-full bg-[#EA580C] hover:bg-[#C2410C] rounded-t transition-all duration-300"
+                    title={`${item.week}: ${item.percent}% Occupied`}
+                  />
+                </div>
+                {/* Week text */}
+                <span className="text-[10px] font-mono text-[#737373] mt-1.5 font-medium">
+                  {item.week}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 5. CAPACITY DISTRIBUTION TRACK & ACTION REQUIRED CENTER                   */}
       {/* ========================================================================= */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         {/* Left: Urgent Attention Center (7 cols) */}
@@ -341,7 +682,7 @@ export const DashboardPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Right: Real-time Inventory Occupancy Heatmap (5 cols) */}
+        {/* Right: Capacity Track & Breakdown (5 cols) */}
         <div className="lg:col-span-5 bg-white rounded-xl p-5 border border-[#E5E5E5] shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between pb-3.5 border-b border-[#E5E5E5]">
@@ -350,7 +691,7 @@ export const DashboardPage: React.FC = () => {
                   INVENTORY STATUS
                 </span>
                 <h3 className="text-sm font-bold text-[#171717] mt-0.5">
-                  Capacity &amp; Occupancy Heatmap
+                  Capacity Distribution ({totalAssets} Units)
                 </h3>
               </div>
               <Link
@@ -365,7 +706,7 @@ export const DashboardPage: React.FC = () => {
             {/* Segmented Color Track Bar */}
             <div className="my-4">
               <div className="flex justify-between text-xs mb-1.5">
-                <span className="text-[#525252] font-medium">Capacity Distribution</span>
+                <span className="text-[#525252] font-medium">Fleet Distribution</span>
                 <span className="font-mono font-bold text-[#171717]">{totalAssets} Units Registered</span>
               </div>
               <div className="w-full h-3 rounded-full bg-[#F5F5F4] overflow-hidden flex shadow-inner">
@@ -385,7 +726,7 @@ export const DashboardPage: React.FC = () => {
                 <div
                   style={{ width: `${(maintenanceCount / totalAssets) * 100}%` }}
                   className="bg-orange-500 h-full"
-                  title={`Maintenance: ${maintenanceCount} Unit`}
+                  title={`Maintenance: ${maintenanceCount} Units`}
                 />
                 {/* Available (Emerald) */}
                 <div
@@ -437,7 +778,7 @@ export const DashboardPage: React.FC = () => {
                   <span className="text-xs font-semibold text-[#171717]">Maintenance</span>
                 </div>
                 <div className="text-right">
-                  <span className="font-mono font-bold text-xs text-orange-700">{maintenanceCount} Unit</span>
+                  <span className="font-mono font-bold text-xs text-orange-700">{maintenanceCount} Units</span>
                   <div className="text-[10px] text-[#737373]">Repair/Audit</div>
                 </div>
               </div>
@@ -748,7 +1089,7 @@ export const DashboardPage: React.FC = () => {
                   <h4 className="text-xs font-bold text-[#171717] group-hover:text-[#EA580C] transition-colors">
                     Add Resource
                   </h4>
-                  <p className="text-[10px] text-[#737373]">Register new billboard</p>
+                  <p className="text-[10px] text-[#737373]">Register new inventory / resource</p>
                 </div>
               </Link>
 

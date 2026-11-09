@@ -35,6 +35,9 @@ export const CreateDirectBookingModal: React.FC<CreateDirectBookingModalProps> =
   const [agreedMarkupAmount, setAgreedMarkupAmount] = useState('');
   const [customerAdjustmentAmount, setCustomerAdjustmentAmount] = useState('');
   const [finalInvoicedAmount, setFinalInvoicedAmount] = useState('');
+  const [includePrinting, setIncludePrinting] = useState<boolean>(true);
+  const [includeMounting, setIncludeMounting] = useState<boolean>(true);
+  const [creativeOption, setCreativeOption] = useState<'WAIVED' | 'BILLABLE' | 'NONE'>('WAIVED');
 
   const [notes, setNotes] = useState('');
   const [initialStatus, setInitialStatus] = useState<'UNDER REVIEW' | 'CONFIRMED'>('UNDER REVIEW');
@@ -85,6 +88,13 @@ export const CreateDirectBookingModal: React.FC<CreateDirectBookingModalProps> =
         agreedMarkupAmount: agreedMarkupAmount.trim() || undefined,
         customerAdjustmentAmount: customerAdjustmentAmount.trim() || undefined,
         finalInvoicedAmount: finalInvoicedAmount.trim() || undefined,
+        printingIncluded: includePrinting,
+        printingCharges: includePrinting ? 3888 : 0,
+        mountingIncluded: includeMounting,
+        mountingCharges: includeMounting ? 1620 : 0,
+        creativeIncluded: creativeOption !== 'NONE',
+        creativeCharges: creativeOption === 'BILLABLE' ? 3000 : 0,
+        creativeDiscountAmount: creativeOption === 'WAIVED' ? 3000 : 0,
       },
       notes: notes.trim() || undefined,
       createdAt: new Date().toISOString().split('T')[0],
@@ -267,6 +277,105 @@ export const CreateDirectBookingModal: React.FC<CreateDirectBookingModalProps> =
           <span className="text-[10px] font-bold uppercase tracking-wider text-[#737373] block border-b border-[#E5E5E5] pb-1">
             Pricing Breakdown (Optional Commercial Ledger)
           </span>
+
+          {/* Production, Mounting & Creative Add-ons (Matching Screenshot) */}
+          <div className="p-3.5 rounded-lg border border-stone-200 bg-[#FAFAF9] space-y-3">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#737373] block border-b border-stone-200 pb-1">
+              Production, Mounting &amp; Creative Add-ons
+            </span>
+
+            <div className="space-y-2.5 text-xs">
+              {/* 1. Printing */}
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-2 cursor-pointer font-medium text-stone-900">
+                  <input
+                    type="checkbox"
+                    checked={includePrinting}
+                    onChange={(e) => setIncludePrinting(e.target.checked)}
+                    className="w-3.5 h-3.5 rounded border-stone-300 text-[#EA580C] focus:ring-[#EA580C]"
+                  />
+                  <span>Printing Charges (₹12/sqft)</span>
+                </label>
+                <span className="font-mono font-bold text-stone-900">
+                  {includePrinting ? '₹3,888' : '₹0'}
+                </span>
+              </div>
+
+              {/* 2. Mounting */}
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-2 cursor-pointer font-medium text-stone-900">
+                  <input
+                    type="checkbox"
+                    checked={includeMounting}
+                    onChange={(e) => setIncludeMounting(e.target.checked)}
+                    className="w-3.5 h-3.5 rounded border-stone-300 text-[#EA580C] focus:ring-[#EA580C]"
+                  />
+                  <span>Mounting Charges (₹5/sqft)</span>
+                </label>
+                <span className="font-mono font-bold text-stone-900">
+                  {includeMounting ? '₹1,620' : '₹0'}
+                </span>
+              </div>
+
+              {/* 3. Creative Designs */}
+              <div className="flex items-center justify-between pt-1 border-t border-stone-200">
+                <div className="space-y-1">
+                  <label className="flex items-center gap-2 cursor-pointer font-medium text-stone-900">
+                    <input
+                      type="checkbox"
+                      checked={creativeOption !== 'NONE'}
+                      onChange={(e) => setCreativeOption(e.target.checked ? 'WAIVED' : 'NONE')}
+                      className="w-3.5 h-3.5 rounded border-stone-300 text-[#EA580C] focus:ring-[#EA580C]"
+                    />
+                    <span>Ad Creatives / Designs</span>
+                  </label>
+                  {creativeOption !== 'NONE' && (
+                    <div className="pl-5.5 flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setCreativeOption('WAIVED')}
+                        className={`text-[9px] px-1.5 py-0.2 rounded font-semibold transition-colors ${
+                          creativeOption === 'WAIVED'
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                            : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                        }`}
+                      >
+                        Courtesy Waiver (Free)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCreativeOption('BILLABLE')}
+                        className={`text-[9px] px-1.5 py-0.2 rounded font-semibold transition-colors ${
+                          creativeOption === 'BILLABLE'
+                            ? 'bg-orange-100 text-[#EA580C] border border-orange-300'
+                            : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                        }`}
+                      >
+                        Charge (₹3,000)
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="font-mono font-bold flex items-center gap-1.5">
+                  {creativeOption === 'WAIVED' && (
+                    <>
+                      <span className="line-through text-stone-400 font-normal">₹3,000</span>
+                      <span className="text-emerald-700">₹0</span>
+                    </>
+                  )}
+                  {creativeOption === 'BILLABLE' && <span className="text-stone-900">₹3,000</span>}
+                  {creativeOption === 'NONE' && (
+                    <>
+                      <span className="line-through text-stone-400 font-normal">₹3,000</span>
+                      <span className="text-stone-500 font-normal">₹0</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
               label="Regular Customer Price"

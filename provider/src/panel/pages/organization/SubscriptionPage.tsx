@@ -186,7 +186,7 @@ export const SubscriptionPage: React.FC = () => {
                     </Badge>
                   </div>
                   <h3 className="text-base font-bold text-[#171717] mt-0.5">
-                    Apex Media Networks — Operational SaaS License
+                    MD ARTS — Operational SaaS License
                   </h3>
                   <p className="text-xs text-[#737373]">
                     Includes all 5 Core Solutions, double-booking prevention, work order dispatch, and marketplace syndication.

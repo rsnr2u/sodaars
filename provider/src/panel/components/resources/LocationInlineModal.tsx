@@ -8,7 +8,11 @@ import {
 import Modal from '../../../components/ui/Modal';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
-import { LocationMetadata } from '../../types/resource';
+import {
+  LocationMetadata,
+  INDIAN_STATES,
+  COMMON_TRANSIT_ROUTES,
+} from '../../types/resource';
 
 export interface LocationInlineModalProps {
   isOpen: boolean;
@@ -24,8 +28,10 @@ export const LocationInlineModal: React.FC<LocationInlineModalProps> = ({
   initialLocation,
 }) => {
   const [name, setName] = useState('');
+  const [state, setState] = useState('Maharashtra');
   const [city, setCity] = useState('');
   const [area, setArea] = useState('');
+  const [routeName, setRouteName] = useState('');
   const [landmark, setLandmark] = useState('');
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
@@ -35,15 +41,19 @@ export const LocationInlineModal: React.FC<LocationInlineModalProps> = ({
   useEffect(() => {
     if (initialLocation) {
       setName(initialLocation.name);
+      setState(initialLocation.state || 'Maharashtra');
       setCity(initialLocation.city);
       setArea(initialLocation.area);
+      setRouteName(initialLocation.routeName || '');
       setLandmark(initialLocation.landmark || '');
       setLatitude(initialLocation.latitude || '');
       setLongitude(initialLocation.longitude || '');
     } else {
       setName('');
+      setState('Maharashtra');
       setCity('');
       setArea('');
+      setRouteName('');
       setLandmark('');
       setLatitude('');
       setLongitude('');
@@ -64,6 +74,14 @@ export const LocationInlineModal: React.FC<LocationInlineModalProps> = ({
     bbox
   )}&layer=mapnik&marker=${displayLat}%2C${displayLng}`;
 
+  const suggestedRoutes = COMMON_TRANSIT_ROUTES[city] || [
+    'Western Express Highway (WEH)',
+    'Eastern Express Highway (EEH)',
+    'Outer Ring Road (ORR)',
+    'Airport Road Expressway',
+    'Main Arterial Corridor',
+  ];
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
@@ -78,8 +96,10 @@ export const LocationInlineModal: React.FC<LocationInlineModalProps> = ({
     const newLoc: LocationMetadata = {
       id: initialLocation?.id || `loc-${Date.now()}`,
       name: name.trim(),
+      state: state.trim() || 'Maharashtra',
       city: city.trim(),
       area: area.trim() || city.trim(),
+      routeName: routeName.trim() || undefined,
       landmark: landmark.trim() || undefined,
       latitude: latitude.trim() || undefined,
       longitude: longitude.trim() || undefined,
@@ -211,7 +231,27 @@ export const LocationInlineModal: React.FC<LocationInlineModalProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-semibold text-[#171717] mb-1">
-              City / Town <span className="text-rose-500">*</span>
+              State (Tax Region) <span className="text-rose-500">*</span>
+            </label>
+            <select
+              value={state}
+              onChange={(e) => {
+                setState(e.target.value);
+                if (error) setError(null);
+              }}
+              className="w-full text-xs h-9 px-3 rounded-md bg-white border border-[#E5E5E5] text-[#171717] focus:outline-none focus:border-[#EA580C] focus:ring-1 focus:ring-[#EA580C]"
+            >
+              {INDIAN_STATES.map((st) => (
+                <option key={st} value={st}>
+                  {st}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-[#171717] mb-1">
+              City / District <span className="text-rose-500">*</span>
             </label>
             <Input
               value={city}
@@ -219,32 +259,53 @@ export const LocationInlineModal: React.FC<LocationInlineModalProps> = ({
                 setCity(e.target.value);
                 if (error) setError(null);
               }}
-              placeholder="e.g. Vijayawada"
-              className="w-full text-xs"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-[#171717] mb-1">
-              Area / Locality
-            </label>
-            <Input
-              value={area}
-              onChange={(e) => setArea(e.target.value)}
-              placeholder="e.g. Ring Road Corridor"
+              placeholder="e.g. Mumbai, Bengaluru, Hyderabad"
               className="w-full text-xs"
             />
           </div>
         </div>
 
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-semibold text-[#171717] mb-1">
+              Area / Micro-Market
+            </label>
+            <Input
+              value={area}
+              onChange={(e) => setArea(e.target.value)}
+              placeholder="e.g. Andheri East, Whitefield, Bandra"
+              className="w-full text-xs"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-[#171717] mb-1 flex items-center justify-between">
+              <span>Route / Corridor Name</span>
+              <span className="text-[10px] text-[#EA580C] font-normal">Arterial Route</span>
+            </label>
+            <Input
+              list="transit-routes-list"
+              value={routeName}
+              onChange={(e) => setRouteName(e.target.value)}
+              placeholder="e.g. Western Express Highway (WEH)"
+              className="w-full text-xs"
+            />
+            <datalist id="transit-routes-list">
+              {suggestedRoutes.map((r) => (
+                <option key={r} value={r} />
+              ))}
+            </datalist>
+          </div>
+        </div>
+
         <div>
           <label className="block text-xs font-semibold text-[#171717] mb-1">
-            Prominent Landmark
+            Prominent Landmark / Physical Spot
           </label>
           <Input
             value={landmark}
             onChange={(e) => setLandmark(e.target.value)}
-            placeholder="e.g. Adjacent to Flyover Pillar 24"
+            placeholder="e.g. Near Gundavali Metro Station Pillar #42"
             className="w-full text-xs"
           />
         </div>

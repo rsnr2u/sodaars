@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Layers,
@@ -13,6 +13,10 @@ import {
   ExternalLink,
   SlidersHorizontal,
   Upload,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import Button from '../../components/ui/Button';
@@ -83,8 +87,10 @@ export const ResourcesPage: React.FC = () => {
   // Filter and search state
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string>('ALL');
+  const [selectedState, setSelectedState] = useState<string>('ALL');
   const [selectedCity, setSelectedCity] = useState<string>('ALL');
   const [selectedArea, setSelectedArea] = useState<string>('ALL');
+  const [selectedRoute, setSelectedRoute] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [selectedMarketplace, setSelectedMarketplace] = useState<string>('ALL');
 
@@ -242,55 +248,124 @@ export const ResourcesPage: React.FC = () => {
 
 
 
-  // Unique Cities derived from resources and locations
+  // Unique States derived from resources and locations
+  const availableStates = useMemo(() => {
+    const states = new Set<string>();
+    resources.forEach((r) => {
+      if (r.location?.state) states.add(r.location.state);
+    });
+    locations.forEach((l) => {
+      if (l.state) states.add(l.state);
+    });
+    return Array.from(states).sort();
+  }, [resources, locations]);
+
+  // Unique Cities derived from resources and locations (filtered by selected state if any)
   const availableCities = useMemo(() => {
     const cities = new Set<string>();
     resources.forEach((r) => {
-      if (r.location?.city) cities.add(r.location.city);
+      const matchState =
+        selectedState === 'ALL' ||
+        (r.location?.state || '').toLowerCase() === selectedState.toLowerCase();
+      if (r.location?.city && matchState) {
+        cities.add(r.location.city);
+      }
     });
     locations.forEach((l) => {
-      if (l.city) cities.add(l.city);
+      const matchState =
+        selectedState === 'ALL' ||
+        (l.state || '').toLowerCase() === selectedState.toLowerCase();
+      if (l.city && matchState) {
+        cities.add(l.city);
+      }
     });
     return Array.from(cities).sort();
-  }, [resources, locations]);
+  }, [resources, locations, selectedState]);
 
-  // Unique Areas derived from resources and locations (filtered by selected city if any)
+  // Unique Areas derived from resources and locations (filtered by selected state & city if any)
   const availableAreas = useMemo(() => {
     const areas = new Set<string>();
     resources.forEach((r) => {
-      if (
-        r.location?.area &&
-        (selectedCity === 'ALL' || r.location.city.toLowerCase() === selectedCity.toLowerCase())
-      ) {
+      const matchState =
+        selectedState === 'ALL' ||
+        (r.location?.state || '').toLowerCase() === selectedState.toLowerCase();
+      const matchCity =
+        selectedCity === 'ALL' ||
+        (r.location?.city || '').toLowerCase() === selectedCity.toLowerCase();
+      if (r.location?.area && matchState && matchCity) {
         areas.add(r.location.area);
       }
     });
     locations.forEach((l) => {
-      if (
-        l.area &&
-        (selectedCity === 'ALL' || l.city.toLowerCase() === selectedCity.toLowerCase())
-      ) {
+      const matchState =
+        selectedState === 'ALL' ||
+        (l.state || '').toLowerCase() === selectedState.toLowerCase();
+      const matchCity =
+        selectedCity === 'ALL' ||
+        (l.city || '').toLowerCase() === selectedCity.toLowerCase();
+      if (l.area && matchState && matchCity) {
         areas.add(l.area);
       }
     });
     return Array.from(areas).sort();
-  }, [resources, locations, selectedCity]);
+  }, [resources, locations, selectedState, selectedCity]);
+
+  // Unique Transit Routes / Corridors derived from resources and locations
+  const availableRoutes = useMemo(() => {
+    const routes = new Set<string>();
+    resources.forEach((r) => {
+      const matchState =
+        selectedState === 'ALL' ||
+        (r.location?.state || '').toLowerCase() === selectedState.toLowerCase();
+      const matchCity =
+        selectedCity === 'ALL' ||
+        (r.location?.city || '').toLowerCase() === selectedCity.toLowerCase();
+      const matchArea =
+        selectedArea === 'ALL' ||
+        (r.location?.area || '').toLowerCase() === selectedArea.toLowerCase();
+      if (r.location?.routeName && matchState && matchCity && matchArea) {
+        routes.add(r.location.routeName);
+      }
+    });
+    locations.forEach((l) => {
+      const matchState =
+        selectedState === 'ALL' ||
+        (l.state || '').toLowerCase() === selectedState.toLowerCase();
+      const matchCity =
+        selectedCity === 'ALL' ||
+        (l.city || '').toLowerCase() === selectedCity.toLowerCase();
+      const matchArea =
+        selectedArea === 'ALL' ||
+        (l.area || '').toLowerCase() === selectedArea.toLowerCase();
+      if (l.routeName && matchState && matchCity && matchArea) {
+        routes.add(l.routeName);
+      }
+    });
+    return Array.from(routes).sort();
+  }, [resources, locations, selectedState, selectedCity, selectedArea]);
 
   // Filtered resources
   const filteredResources = useMemo(() => {
     return resources.filter((r) => {
-      // Search across name, site name, city, area, landmark
+      // Search across name, site name, state, city, area, route, landmark
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch =
         q === '' ||
         r.name.toLowerCase().includes(q) ||
         r.location.name.toLowerCase().includes(q) ||
+        (r.location.state && r.location.state.toLowerCase().includes(q)) ||
         r.location.city.toLowerCase().includes(q) ||
         r.location.area.toLowerCase().includes(q) ||
+        (r.location.routeName && r.location.routeName.toLowerCase().includes(q)) ||
         (r.location.landmark && r.location.landmark.toLowerCase().includes(q));
 
       // Type
       const matchesType = selectedType === 'ALL' || r.type === selectedType;
+
+      // Location: State
+      const matchesState =
+        selectedState === 'ALL' ||
+        (r.location.state && r.location.state.toLowerCase() === selectedState.toLowerCase());
 
       // Location: City
       const matchesCity =
@@ -301,6 +376,11 @@ export const ResourcesPage: React.FC = () => {
       const matchesArea =
         selectedArea === 'ALL' ||
         r.location.area.toLowerCase() === selectedArea.toLowerCase();
+
+      // Location: Route / Arterial Corridor
+      const matchesRoute =
+        selectedRoute === 'ALL' ||
+        (r.location.routeName && r.location.routeName.toLowerCase() === selectedRoute.toLowerCase());
 
       // Status
       const matchesStatus = selectedStatus === 'ALL' || r.status === selectedStatus;
@@ -323,8 +403,10 @@ export const ResourcesPage: React.FC = () => {
       return (
         matchesSearch &&
         matchesType &&
+        matchesState &&
         matchesCity &&
         matchesArea &&
+        matchesRoute &&
         matchesStatus &&
         matchesMarketplace
       );
@@ -333,19 +415,60 @@ export const ResourcesPage: React.FC = () => {
     resources,
     searchQuery,
     selectedType,
+    selectedState,
     selectedCity,
     selectedArea,
+    selectedRoute,
     selectedStatus,
     selectedMarketplace,
     activeOccupationFilter,
     resourceOccupationMap,
   ]);
 
+  // Pagination state (default: 25 items per page)
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number | 'ALL'>(25);
+
+  // Reset page to 1 whenever search, filters, or date range changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    searchQuery,
+    selectedType,
+    selectedState,
+    selectedCity,
+    selectedArea,
+    selectedRoute,
+    selectedStatus,
+    selectedMarketplace,
+    activeOccupationFilter,
+    startDate,
+    endDate,
+  ]);
+
+  // Total pages
+  const totalPages = useMemo(() => {
+    if (pageSize === 'ALL') return 1;
+    return Math.max(1, Math.ceil(filteredResources.length / Number(pageSize)));
+  }, [filteredResources.length, pageSize]);
+
+  // Validated current page
+  const validCurrentPage = Math.min(currentPage, totalPages);
+
+  // Slice paginated items
+  const paginatedResources = useMemo(() => {
+    if (pageSize === 'ALL') return filteredResources;
+    const start = (validCurrentPage - 1) * Number(pageSize);
+    return filteredResources.slice(start, start + Number(pageSize));
+  }, [filteredResources, validCurrentPage, pageSize]);
+
   const hasActiveFilters =
     searchQuery !== '' ||
     selectedType !== 'ALL' ||
+    selectedState !== 'ALL' ||
     selectedCity !== 'ALL' ||
     selectedArea !== 'ALL' ||
+    selectedRoute !== 'ALL' ||
     selectedStatus !== 'ALL' ||
     selectedMarketplace !== 'ALL' ||
     activeOccupationFilter !== 'ALL';
@@ -353,8 +476,10 @@ export const ResourcesPage: React.FC = () => {
   const resetFilters = () => {
     setSearchQuery('');
     setSelectedType('ALL');
+    setSelectedState('ALL');
     setSelectedCity('ALL');
     setSelectedArea('ALL');
+    setSelectedRoute('ALL');
     setSelectedStatus('ALL');
     setSelectedMarketplace('ALL');
     setActiveOccupationFilter('ALL');
@@ -456,8 +581,8 @@ export const ResourcesPage: React.FC = () => {
     <div className="flex-1 flex flex-col w-full">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 p-3.5 rounded-lg bg-[#171717] text-white text-xs font-semibold shadow-lg flex items-center gap-2 border border-stone-800 transition-all animate-in fade-in slide-in-from-bottom-2">
-          <span className="w-2 h-2 rounded-full bg-[#EA580C]" />
+        <div className="fixed bottom-6 right-6 z-50 p-3.5 rounded-lg bg-[#1A2435] text-white text-xs font-semibold shadow-lg flex items-center gap-2 border border-[#2C3B52] transition-all animate-in fade-in slide-in-from-bottom-2">
+          <span className="w-2 h-2 rounded-full bg-[#E11D2E]" />
           <span>{toastMessage}</span>
         </div>
       )}
@@ -471,14 +596,14 @@ export const ResourcesPage: React.FC = () => {
             <Button
               variant="outline"
               size="sm"
-              leftIcon={<Upload size={14} className="text-[#EA580C]" />}
+              leftIcon={<Upload size={14} className="text-[#E11D2E]" />}
               onClick={() => setIsImportDrawerOpen(true)}
-              className="border-[#E5E5E5] text-[#171717] hover:bg-[#FAFAF9]"
+              className="border-[#CBD5E1] text-[#1A2435] hover:bg-[#F4F6F8]"
             >
               Import Inventory
             </Button>
             <Button
-              variant="primary"
+              variant="accent"
               size="sm"
               leftIcon={<Plus size={14} />}
               onClick={() => {
@@ -588,13 +713,40 @@ export const ResourcesPage: React.FC = () => {
               ))}
             </select>
 
+            {/* Location Filter: State */}
+            <div className="flex items-center">
+              <select
+                value={selectedState}
+                onChange={(e) => {
+                  setSelectedState(e.target.value);
+                  setSelectedCity('ALL');
+                  setSelectedArea('ALL');
+                  setSelectedRoute('ALL');
+                }}
+                className={`text-xs h-8 px-2.5 py-1 rounded-md border text-[#171717] focus:outline-none focus:border-[#EA580C] ${
+                  selectedState !== 'ALL'
+                    ? 'bg-orange-50/50 border-orange-300 font-semibold'
+                    : 'bg-[#FAFAF9] border-[#E5E5E5]'
+                }`}
+                title="Filter by State (Tax Jurisdiction)"
+              >
+                <option value="ALL">All States ({availableStates.length})</option>
+                {availableStates.map((st) => (
+                  <option key={st} value={st}>
+                    {st}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Location Filter: City */}
             <div className="flex items-center">
               <select
                 value={selectedCity}
                 onChange={(e) => {
                   setSelectedCity(e.target.value);
-                  setSelectedArea('ALL'); // Reset area when city changes
+                  setSelectedArea('ALL');
+                  setSelectedRoute('ALL');
                 }}
                 className={`text-xs h-8 px-2.5 py-1 rounded-md border text-[#171717] focus:outline-none focus:border-[#EA580C] ${
                   selectedCity !== 'ALL'
@@ -603,7 +755,11 @@ export const ResourcesPage: React.FC = () => {
                 }`}
                 title="Filter by City / Town"
               >
-                <option value="ALL">All Cities ({availableCities.length})</option>
+                <option value="ALL">
+                  {selectedState !== 'ALL'
+                    ? `All Cities in ${selectedState} (${availableCities.length})`
+                    : `All Cities (${availableCities.length})`}
+                </option>
                 {availableCities.map((city) => (
                   <option key={city} value={city}>
                     {city}
@@ -616,7 +772,10 @@ export const ResourcesPage: React.FC = () => {
             <div className="flex items-center">
               <select
                 value={selectedArea}
-                onChange={(e) => setSelectedArea(e.target.value)}
+                onChange={(e) => {
+                  setSelectedArea(e.target.value);
+                  setSelectedRoute('ALL');
+                }}
                 className={`text-xs h-8 px-2.5 py-1 rounded-md border text-[#171717] focus:outline-none focus:border-[#EA580C] ${
                   selectedArea !== 'ALL'
                     ? 'bg-orange-50/50 border-orange-300 font-semibold'
@@ -632,6 +791,33 @@ export const ResourcesPage: React.FC = () => {
                 {availableAreas.map((area) => (
                   <option key={area} value={area}>
                     {area}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Location Filter: Route / Arterial Corridor */}
+            <div className="flex items-center">
+              <select
+                value={selectedRoute}
+                onChange={(e) => setSelectedRoute(e.target.value)}
+                className={`text-xs h-8 px-2.5 py-1 rounded-md border text-[#171717] focus:outline-none focus:border-[#EA580C] ${
+                  selectedRoute !== 'ALL'
+                    ? 'bg-orange-50/50 border-orange-300 font-semibold'
+                    : 'bg-[#FAFAF9] border-[#E5E5E5]'
+                }`}
+                title="Filter by Transit Route / Corridor"
+              >
+                <option value="ALL">
+                  {selectedArea !== 'ALL'
+                    ? `All Routes in ${selectedArea} (${availableRoutes.length})`
+                    : selectedCity !== 'ALL'
+                    ? `All Routes in ${selectedCity} (${availableRoutes.length})`
+                    : `All Routes / Corridors (${availableRoutes.length})`}
+                </option>
+                {availableRoutes.map((rt) => (
+                  <option key={rt} value={rt}>
+                    🛣️ {rt}
                   </option>
                 ))}
               </select>
@@ -818,7 +1004,7 @@ export const ResourcesPage: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredResources.map((res) => (
+                  {paginatedResources.map((res) => (
                     <TableRow
                       key={res.id}
                       className="cursor-pointer group"
@@ -858,15 +1044,28 @@ export const ResourcesPage: React.FC = () => {
 
                       {/* Location (Supporting Metadata) */}
                       <TableCell>
-                        <div className="flex flex-col text-xs leading-tight">
+                        <div className="flex flex-col text-xs leading-tight gap-0.5">
                           <span className="font-semibold text-[#171717]">
                             {res.location.name}
                           </span>
-                          <span className="text-[11px] text-[#737373] flex items-center gap-1 mt-0.5">
-                            <MapPin size={10} className="text-[#EA580C]" />
-                            {res.location.city}
-                            {res.location.landmark && ` • ${res.location.landmark}`}
-                          </span>
+                          <div className="text-[11px] text-[#737373] flex items-center gap-1 flex-wrap">
+                            <MapPin size={10} className="text-[#EA580C] shrink-0" />
+                            <span>{res.location.area}, {res.location.city}</span>
+                            <span className="text-stone-400">({res.location.state || 'Maharashtra'})</span>
+                          </div>
+                          {res.location.routeName && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedRoute(res.location.routeName || 'ALL');
+                              }}
+                              className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#EA580C] bg-orange-50 hover:bg-orange-100 px-1.5 py-0.5 rounded border border-orange-200 mt-0.5 w-fit cursor-pointer transition-colors"
+                              title={`Click to filter all assets along ${res.location.routeName}`}
+                            >
+                              <span>🛣️ {res.location.routeName}</span>
+                            </button>
+                          )}
                         </div>
                       </TableCell>
 
@@ -1047,6 +1246,110 @@ export const ResourcesPage: React.FC = () => {
                 </TableBody>
               </Table>
             </div>
+
+            {/* Pagination Controls Bar */}
+            {filteredResources.length > 0 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-3.5 border-t border-[#E5E5E5] bg-[#FAFAF9]/60 text-xs">
+                <div className="flex items-center gap-3">
+                  <span className="text-[#737373]">
+                    Showing{' '}
+                    <span className="font-bold text-[#171717]">
+                      {pageSize === 'ALL'
+                        ? 1
+                        : Math.min(
+                            filteredResources.length,
+                            (validCurrentPage - 1) * Number(pageSize) + 1
+                          )}
+                    </span>{' '}
+                    to{' '}
+                    <span className="font-bold text-[#171717]">
+                      {pageSize === 'ALL'
+                        ? filteredResources.length
+                        : Math.min(
+                            filteredResources.length,
+                            validCurrentPage * Number(pageSize)
+                          )}
+                    </span>{' '}
+                    of{' '}
+                    <span className="font-bold text-[#171717]">
+                      {filteredResources.length}
+                    </span>{' '}
+                    assets
+                  </span>
+
+                  <div className="h-3.5 w-px bg-[#E5E5E5]" />
+
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[#737373]">Show:</span>
+                    <select
+                      value={pageSize}
+                      onChange={(e) => {
+                        const val = e.target.value === 'ALL' ? 'ALL' : Number(e.target.value);
+                        setPageSize(val);
+                        setCurrentPage(1);
+                      }}
+                      className="text-xs h-7 px-2 py-0.5 rounded border border-[#E5E5E5] bg-white text-[#171717] focus:outline-none focus:border-[#EA580C] font-semibold cursor-pointer"
+                    >
+                      <option value={25}>25 / page</option>
+                      <option value={50}>50 / page</option>
+                      <option value={100}>100 / page</option>
+                      <option value="ALL">All ({filteredResources.length})</option>
+                    </select>
+                  </div>
+                </div>
+
+                {pageSize !== 'ALL' && totalPages > 1 && (
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setCurrentPage(1)}
+                      disabled={validCurrentPage === 1}
+                      className="p-1.5 rounded border border-[#E5E5E5] bg-white text-[#171717] hover:bg-[#F5F5F4] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                      title="First Page"
+                      aria-label="First Page"
+                    >
+                      <ChevronsLeft size={14} />
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={validCurrentPage === 1}
+                      className="p-1.5 rounded border border-[#E5E5E5] bg-white text-[#171717] hover:bg-[#F5F5F4] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                      title="Previous Page"
+                      aria-label="Previous Page"
+                    >
+                      <ChevronLeft size={14} />
+                    </button>
+
+                    {/* Page Numbers */}
+                    <div className="flex items-center gap-1 px-2 text-xs font-mono">
+                      <span className="font-bold text-[#EA580C] bg-orange-50 px-2 py-0.5 rounded border border-orange-200">
+                        {validCurrentPage}
+                      </span>
+                      <span className="text-[#737373]">/</span>
+                      <span className="text-[#737373]">{totalPages}</span>
+                    </div>
+
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={validCurrentPage === totalPages}
+                      className="p-1.5 rounded border border-[#E5E5E5] bg-white text-[#171717] hover:bg-[#F5F5F4] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                      title="Next Page"
+                      aria-label="Next Page"
+                    >
+                      <ChevronRight size={14} />
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage(totalPages)}
+                      disabled={validCurrentPage === totalPages}
+                      className="p-1.5 rounded border border-[#E5E5E5] bg-white text-[#171717] hover:bg-[#F5F5F4] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                      title="Last Page"
+                      aria-label="Last Page"
+                    >
+                      <ChevronsRight size={14} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -20,7 +20,7 @@ export const BookingDistributionTab: React.FC<BookingDistributionTabProps> = ({ 
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 5;
+  const [pageSize, setPageSize] = useState(50);
 
   const totalValue = channels.reduce((acc, c) => acc + c.totalAmount, 0);
   const totalCount = channels.reduce((acc, c) => acc + c.count, 0);
@@ -241,11 +241,28 @@ export const BookingDistributionTab: React.FC<BookingDistributionTabProps> = ({ 
 
         {/* PAGINATION */}
         <div className="bg-[#FAFAF9] px-4 py-3 border-t border-[#E5E5E5] flex items-center justify-between text-xs text-[#737373]">
-          <span>
-            Showing <strong>{(currentPage - 1) * pageSize + 1}</strong> to{' '}
-            <strong>{Math.min(currentPage * pageSize, filteredBookings.length)}</strong> of{' '}
-            <strong>{filteredBookings.length}</strong> bookings
-          </span>
+          <div className="flex items-center gap-3">
+            <span>
+              Showing <strong>{filteredBookings.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}</strong> to{' '}
+              <strong>{Math.min(currentPage * pageSize, filteredBookings.length)}</strong> of{' '}
+              <strong>{filteredBookings.length}</strong> bookings
+            </span>
+            <div className="flex items-center gap-1.5 pl-3 border-l border-[#E5E5E5]">
+              <span>Rows:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="h-7 text-xs rounded border border-[#E5E5E5] bg-white px-1.5"
+              >
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+                <option value={200}>200</option>
+              </select>
+            </div>
+          </div>
           <div className="flex items-center gap-1">
             <Button
               variant="ghost"

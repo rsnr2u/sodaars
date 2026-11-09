@@ -56,3 +56,12 @@ website/directory/out/
 *.sw?
 .DS_Store
 Thumbs.db
+
+# Next.js & Frontend builds
+marketplace/.next/
+marketplace/out/
+admin/dist/
+admin/.vite/
+**/.next/
+**/dist/
+**/.vite/

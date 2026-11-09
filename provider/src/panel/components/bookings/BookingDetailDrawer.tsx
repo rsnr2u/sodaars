@@ -13,6 +13,7 @@ import {
   BOOKING_SOURCE_CONFIG,
   BOOKING_STATUS_CONFIG,
 } from '../../types/booking';
+import { getBookingLocation } from '../../utils/bookingLocationBridge';
 
 export interface BookingDetailDrawerProps {
   isOpen: boolean;
@@ -159,23 +160,41 @@ export const BookingDetailDrawer: React.FC<BookingDetailDrawerProps> = ({
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 text-xs bg-[#FAFAF9] p-3 rounded-lg border border-[#E5E5E5]">
-            <div>
-              <span className="text-[#737373] text-[11px] block">Resource Name</span>
-              <span className="font-bold text-[#171717]">{booking.resourceName}</span>
-            </div>
-            <div>
-              <span className="text-[#737373] text-[11px] block">Resource Type</span>
-              <span className="font-medium text-[#171717]">{booking.resourceType}</span>
-            </div>
-            <div className="col-span-2">
-              <span className="text-[#737373] text-[11px] block">Location</span>
-              <span className="font-medium text-[#171717] flex items-center gap-1 mt-0.5">
-                <MapPin size={12} className="text-[#EA580C]" />
-                {booking.location}
-              </span>
-            </div>
-          </div>
+          {(() => {
+            const loc = getBookingLocation(booking);
+            return (
+              <div className="grid grid-cols-2 gap-3 text-xs bg-[#FAFAF9] p-3.5 rounded-lg border border-[#E5E5E5]">
+                <div>
+                  <span className="text-[#737373] text-[11px] block">Resource Name</span>
+                  <span className="font-bold text-[#171717]">{booking.resourceName}</span>
+                </div>
+                <div>
+                  <span className="text-[#737373] text-[11px] block">Resource Type</span>
+                  <span className="font-medium text-[#171717]">{booking.resourceType}</span>
+                </div>
+                <div>
+                  <span className="text-[#737373] text-[11px] block">State (Tax Jurisdiction)</span>
+                  <span className="font-semibold text-[#171717]">{loc.state}</span>
+                </div>
+                <div>
+                  <span className="text-[#737373] text-[11px] block">City &amp; Locality Area</span>
+                  <span className="font-semibold text-[#171717] flex items-center gap-1 mt-0.5">
+                    <MapPin size={12} className="text-[#E11D2E]" />
+                    {loc.city} • {loc.area}
+                  </span>
+                </div>
+                {loc.routeName && (
+                  <div className="col-span-2 pt-2 border-t border-stone-200">
+                    <span className="text-[#737373] text-[11px] block">Route / Transit Corridor</span>
+                    <span className="inline-flex items-center gap-1.5 mt-1 px-2.5 py-1 rounded text-xs font-semibold bg-red-50 text-[#E11D2E] border border-red-200">
+                      <span>🛣️</span>
+                      <span>{loc.routeName}</span>
+                    </span>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Connected relationship sequence */}
           <div className="p-3 rounded-lg border border-stone-200 bg-white">

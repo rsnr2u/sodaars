@@ -41,13 +41,52 @@ export const QuotationViewerModal: React.FC<QuotationViewerModalProps> = ({
       '150000',
     10
   );
-  const displayRental = Math.round(rawPrice * 0.85);
-  const flexPrinting = Math.round(rawPrice * 0.1);
-  const mountingElectricals = Math.round(rawPrice * 0.05);
-  const subtotal = displayRental + flexPrinting + mountingElectricals;
+
+  const hasDetailedPricing =
+    booking.pricing.printingCharges !== undefined ||
+    booking.pricing.mountingCharges !== undefined ||
+    booking.pricing.printingIncluded !== undefined;
+
+  const displayRental = booking.pricing.regularCustomerPrice
+    ? parseInt(booking.pricing.regularCustomerPrice, 10)
+    : hasDetailedPricing
+    ? rawPrice
+    : Math.round(rawPrice * 0.85);
+
+  const includePrinting = booking.pricing.printingIncluded ?? true;
+  const flexPrinting =
+    booking.pricing.printingCharges !== undefined
+      ? booking.pricing.printingCharges
+      : hasDetailedPricing
+      ? 0
+      : Math.round(rawPrice * 0.1);
+
+  const includeMounting = booking.pricing.mountingIncluded ?? true;
+  const mountingElectricals =
+    booking.pricing.mountingCharges !== undefined
+      ? booking.pricing.mountingCharges
+      : hasDetailedPricing
+      ? 0
+      : Math.round(rawPrice * 0.05);
+
+  const creativeOption =
+    booking.pricing.creativeCharges && booking.pricing.creativeCharges > 0
+      ? 'BILLABLE'
+      : booking.pricing.creativeDiscountAmount && booking.pricing.creativeDiscountAmount > 0
+      ? 'WAIVED'
+      : booking.pricing.creativeIncluded === false
+      ? 'NONE'
+      : 'WAIVED';
+
+  const creativeCharged =
+    booking.pricing.creativeCharges ?? (creativeOption === 'BILLABLE' ? 3000 : 0);
+  const commercialDiscount = booking.pricing.commercialDiscountAmount ?? 0;
+
+  const grossSubtotal = displayRental + flexPrinting + mountingElectricals + creativeCharged;
+  const netSubtotal = Math.max(0, grossSubtotal - commercialDiscount);
   const gstRate = 18;
-  const gstAmount = Math.round((subtotal * gstRate) / 100);
-  const totalAmount = subtotal + gstAmount;
+  const gstAmount = Math.round((netSubtotal * gstRate) / 100);
+  const totalAmount = netSubtotal + gstAmount;
 
   const formatCurrency = (amt: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -117,11 +156,11 @@ export const QuotationViewerModal: React.FC<QuotationViewerModalProps> = ({
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded bg-[#EA580C] text-white flex items-center justify-center font-black text-sm tracking-tight">
-                  SO
+                  MD
                 </div>
                 <div>
                   <h2 className="text-base font-extrabold text-[#171717] leading-none">
-                    Apex Outdoor Media Network Pvt Ltd
+                    MD Arts Outdoor Media Network Pvt Ltd
                   </h2>
                   <p className="text-[11px] text-[#737373] mt-0.5">
                     Centralized Concessionaire • SODAARS Operating System Network
@@ -262,6 +301,7 @@ export const QuotationViewerModal: React.FC<QuotationViewerModalProps> = ({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E5E5E5]">
+                  {/* 1. Media Rental */}
                   <tr>
                     <td className="py-2.5 px-3">
                       <div className="font-semibold text-[#171717]">
@@ -277,36 +317,134 @@ export const QuotationViewerModal: React.FC<QuotationViewerModalProps> = ({
                       {formatCurrency(displayRental)}
                     </td>
                   </tr>
+
+                  {/* 2. Printing Charges */}
+                  {includePrinting && flexPrinting > 0 ? (
+                    <tr>
+                      <td className="py-2.5 px-3">
+                        <div className="font-semibold text-[#171717]">
+                          Flex Vinyl Solvent Printing (Heavy Duty 440 GSM)
+                        </div>
+                        <div className="text-[11px] text-[#737373]">
+                          High-density UV ink solvent printing with reinforced eyelet hems (Standard ₹12/sq.ft).
+                        </div>
+                      </td>
+                      <td className="py-2.5 px-3 font-mono text-[#737373]">998361</td>
+                      <td className="py-2.5 px-3 text-right text-[#525252]">1 Skin</td>
+                      <td className="py-2.5 px-3 text-right font-mono font-semibold text-[#171717]">
+                        {formatCurrency(flexPrinting)}
+                      </td>
+                    </tr>
+                  ) : (
+                    <tr className="bg-stone-50/50">
+                      <td className="py-2 px-3">
+                        <div className="font-medium text-[#737373]">
+                          Flex Vinyl Solvent Printing
+                        </div>
+                        <div className="text-[10px] text-stone-400">
+                          Client-provided physical media skin / fabrication not opted.
+                        </div>
+                      </td>
+                      <td className="py-2 px-3 font-mono text-stone-400">—</td>
+                      <td className="py-2 px-3 text-right text-stone-400">Client Skin</td>
+                      <td className="py-2 px-3 text-right font-mono text-stone-400">₹0</td>
+                    </tr>
+                  )}
+
+                  {/* 3. Mounting Charges */}
+                  {includeMounting && mountingElectricals > 0 ? (
+                    <tr>
+                      <td className="py-2.5 px-3">
+                        <div className="font-semibold text-[#171717]">
+                          Rigger Squad Mounting, Tensioning &amp; Lighting Audit
+                        </div>
+                        <div className="text-[11px] text-[#737373]">
+                          Certified night installation, safety harness squad &amp; electrical illumination check (Standard ₹5/sq.ft).
+                        </div>
+                      </td>
+                      <td className="py-2.5 px-3 font-mono text-[#737373]">998361</td>
+                      <td className="py-2.5 px-3 text-right text-[#525252]">1 Service</td>
+                      <td className="py-2.5 px-3 text-right font-mono font-semibold text-[#171717]">
+                        {formatCurrency(mountingElectricals)}
+                      </td>
+                    </tr>
+                  ) : (
+                    <tr className="bg-stone-50/50">
+                      <td className="py-2 px-3">
+                        <div className="font-medium text-[#737373]">
+                          Rigger Squad Mounting &amp; Tensioning
+                        </div>
+                        <div className="text-[10px] text-stone-400">
+                          Agency/Client in-house mounting crew deployment.
+                        </div>
+                      </td>
+                      <td className="py-2 px-3 font-mono text-stone-400">—</td>
+                      <td className="py-2 px-3 text-right text-stone-400">Self Rigger</td>
+                      <td className="py-2 px-3 text-right font-mono text-stone-400">₹0</td>
+                    </tr>
+                  )}
+
+                  {/* 4. Master Ad Creative & Adaptation */}
                   <tr>
                     <td className="py-2.5 px-3">
-                      <div className="font-semibold text-[#171717]">
-                        Flex Vinyl Solvent Printing (Heavy Duty 440 GSM)
+                      <div className="font-semibold text-[#171717] flex items-center gap-1.5">
+                        <span>Master Ad Creative, Typography &amp; Multi-Format Resizing</span>
+                        {creativeOption === 'WAIVED' && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            COURTESY WAIVER
+                          </span>
+                        )}
                       </div>
                       <div className="text-[11px] text-[#737373]">
-                        High-density UV ink solvent printing with eyelet hems.
+                        Single master campaign concept adapted across all inventory dimensions.
                       </div>
                     </td>
                     <td className="py-2.5 px-3 font-mono text-[#737373]">998361</td>
-                    <td className="py-2.5 px-3 text-right text-[#525252]">1 Skin</td>
+                    <td className="py-2.5 px-3 text-right text-[#525252]">1 Concept</td>
                     <td className="py-2.5 px-3 text-right font-mono font-semibold text-[#171717]">
-                      {formatCurrency(flexPrinting)}
+                      {creativeOption === 'WAIVED' ? (
+                        <div className="flex items-center justify-end gap-1.5">
+                          <span className="line-through text-[#737373] text-[11px] font-normal">
+                            ₹3,000
+                          </span>
+                          <span className="text-emerald-700 font-bold">₹0</span>
+                        </div>
+                      ) : creativeOption === 'BILLABLE' ? (
+                        formatCurrency(3000)
+                      ) : (
+                        <span className="text-stone-400 font-normal">₹0 (Client Provided)</span>
+                      )}
                     </td>
                   </tr>
-                  <tr>
-                    <td className="py-2.5 px-3">
-                      <div className="font-semibold text-[#171717]">
-                        Rigger Squad Mounting, Tensioning &amp; Lighting Audit
-                      </div>
-                      <div className="text-[11px] text-[#737373]">
-                        Certified night installation and high-beam electrical illumination check.
-                      </div>
-                    </td>
-                    <td className="py-2.5 px-3 font-mono text-[#737373]">998361</td>
-                    <td className="py-2.5 px-3 text-right text-[#525252]">1 Service</td>
-                    <td className="py-2.5 px-3 text-right font-mono font-semibold text-[#171717]">
-                      {formatCurrency(mountingElectricals)}
-                    </td>
-                  </tr>
+
+                  {/* Courtesy Creative Waiver Line Item if WAIVED */}
+                  {creativeOption === 'WAIVED' && (
+                    <tr className="bg-emerald-50/40">
+                      <td className="py-1.5 px-3 text-emerald-800" colSpan={3}>
+                        <div className="font-medium text-[11px] flex items-center gap-1">
+                          <span>Less: Provider Goodwill Courtesy Creative Discount</span>
+                          <span className="text-[10px] text-emerald-600">(100% Free Campaign Concept Adaptation)</span>
+                        </div>
+                      </td>
+                      <td className="py-1.5 px-3 text-right font-mono font-bold text-emerald-700 text-xs">
+                        -₹3,000 (Waived)
+                      </td>
+                    </tr>
+                  )}
+
+                  {/* Commercial Discount Line Item if applied */}
+                  {commercialDiscount > 0 && (
+                    <tr className="bg-amber-50/40">
+                      <td className="py-1.5 px-3 text-amber-800" colSpan={3}>
+                        <div className="font-medium text-[11px]">
+                          Less: Negotiated Commercial Campaign Volume Discount
+                        </div>
+                      </td>
+                      <td className="py-1.5 px-3 text-right font-mono font-bold text-amber-700 text-xs">
+                        -{formatCurrency(commercialDiscount)}
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
 
@@ -323,9 +461,21 @@ export const QuotationViewerModal: React.FC<QuotationViewerModalProps> = ({
                 </div>
 
                 <div className="w-full sm:w-64 space-y-1.5 text-xs">
+                  {commercialDiscount > 0 && (
+                    <div className="flex items-center justify-between text-[#737373]">
+                      <span>Gross Total:</span>
+                      <span className="font-mono">{formatCurrency(grossSubtotal)}</span>
+                    </div>
+                  )}
+                  {commercialDiscount > 0 && (
+                    <div className="flex items-center justify-between text-amber-700">
+                      <span>Commercial Discount:</span>
+                      <span className="font-mono font-semibold">-{formatCurrency(commercialDiscount)}</span>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between text-[#525252]">
-                    <span>Net Subtotal:</span>
-                    <span className="font-mono font-semibold">{formatCurrency(subtotal)}</span>
+                    <span>Taxable Subtotal:</span>
+                    <span className="font-mono font-semibold">{formatCurrency(netSubtotal)}</span>
                   </div>
                   <div className="flex items-center justify-between text-[#525252]">
                     <span>GST (18% SAC 998361):</span>
@@ -378,8 +528,9 @@ export const QuotationViewerModal: React.FC<QuotationViewerModalProps> = ({
                   onClose();
                 }}
                 leftIcon={<CheckCircle2 size={14} />}
+                className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold"
               >
-                Approve &amp; Confirm Booking
+                Approve &amp; Convert to Tax Invoice
               </Button>
             )}
           </div>

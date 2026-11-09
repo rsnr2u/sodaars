@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bell, HelpCircle, Search, User, LogOut, ExternalLink } from 'lucide-react';
+import { Bell, HelpCircle, Search, User, LogOut, ExternalLink, Key } from 'lucide-react';
 
 export const TopHeader: React.FC = () => {
   const navigate = useNavigate();
@@ -32,23 +32,23 @@ export const TopHeader: React.FC = () => {
   }, [profileOpen]);
 
   return (
-    <div className="w-full bg-[#171717] text-white border-b border-[#262626] px-4 sm:px-6 lg:px-8">
+    <div className="w-full bg-[#1A2435] text-white border-b border-[#2C3B52] px-4 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between h-14">
         {/* Left: Brand Identity & Active Org */}
         <div className="flex items-center gap-4">
           <Link to="/panel/dashboard" className="flex items-center gap-2.5">
-            <div className="bg-white px-2 py-1 rounded-sm flex items-center shadow-xs">
-              <img src="/sodaars-logo.png" alt="SODAARS" className="h-5 w-auto object-contain" />
+            <div className="bg-white px-2.5 py-1 rounded flex items-center shadow-xs">
+              <img src="/sodaars-logo.png" alt="SODAARS - Turning Hoardings Into Digital Reach" className="h-6 w-auto object-contain" />
             </div>
-            <span className="text-[10px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded-xs bg-[#262626] text-[#F97316] border border-[#333333]">
+            <span className="text-[10px] font-semibold uppercase tracking-widest px-1.5 py-0.5 rounded-xs bg-[#0C121B] text-[#E11D2E] border border-[#2C3B52]">
               Provider Panel
             </span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-2 pl-4 border-l border-[#333333]">
-            <span className="text-xs text-[#A3A3A3]">Workspace:</span>
-            <span className="text-xs font-semibold text-white bg-[#262626] px-2 py-0.5 rounded-sm">
-              Apex Media Networks
+          <div className="hidden md:flex items-center gap-2 pl-4 border-l border-[#2C3B52]">
+            <span className="text-xs text-[#94A3B8]">Workspace:</span>
+            <span className="text-xs font-semibold text-white bg-[#2C3B52] px-2 py-0.5 rounded-sm">
+              MD ARTS
             </span>
           </div>
         </div>
@@ -111,7 +111,7 @@ export const TopHeader: React.FC = () => {
               >
                 <div className="px-3 py-2 border-b border-[#E5E5E5]">
                   <div className="font-semibold text-[#171717]">Rajesh Kumar</div>
-                  <div className="text-[11px] text-[#737373]">rajesh@apexoutdoor.com</div>
+                  <div className="text-[11px] text-[#737373]">rajesh@mdarts.com</div>
                 </div>
 
                 <Link
@@ -120,6 +120,14 @@ export const TopHeader: React.FC = () => {
                 >
                   <User size={14} className="text-[#EA580C]" />
                   Settings &amp; Preferences
+                </Link>
+
+                <Link
+                  to="/panel/change-password"
+                  className="flex items-center gap-2 px-3 py-2 hover:bg-[#FAFAF9] text-[#262626] font-medium"
+                >
+                  <Key size={14} className="text-[#EA580C]" />
+                  Change Password
                 </Link>
 
                 <Link

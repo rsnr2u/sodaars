@@ -14,10 +14,10 @@ export const AvailabilityLegend: React.FC<AvailabilityLegendProps> = ({
 }) => {
   return (
     <div
-      className={`bg-white rounded-xl p-3.5 border border-[#E5E5E5] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs ${className}`}
+      className={`bg-white rounded-xl p-3.5 border border-[#E2E8F0] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs ${className}`}
     >
       <div className="flex items-center gap-2">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-[#737373]">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">
           Availability States:
         </span>
       </div>
@@ -36,7 +36,7 @@ export const AvailabilityLegend: React.FC<AvailabilityLegendProps> = ({
               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all border cursor-pointer ${
                 config.badgeBg
               } ${config.badgeText} ${config.badgeBorder} ${
-                isSelected ? 'ring-2 ring-[#EA580C] ring-offset-1 font-bold' : 'hover:opacity-90'
+                isSelected ? 'ring-2 ring-[#E11D2E] ring-offset-1 font-bold' : 'hover:opacity-90'
               }`}
             >
               <span className={`w-2 h-2 rounded-full ${config.indicatorBg}`} />

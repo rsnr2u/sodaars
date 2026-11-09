@@ -49,6 +49,7 @@ import SubscriptionPage from '../panel/pages/organization/SubscriptionPage';
 import OrgMarketplacePage from '../panel/pages/organization/MarketplacePage';
 import MarketplaceAgreementPage from '../panel/pages/organization/MarketplaceAgreementPage';
 import SettingsPage from '../panel/pages/organization/SettingsPage';
+import ChangePasswordPage from '../panel/pages/ChangePasswordPage';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -100,6 +101,7 @@ export const AppRoutes: React.FC = () => {
         <Route path="finance" element={<FinancePage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="change-password" element={<ChangePasswordPage />} />
 
         {/* Organization Sub-Routes with Side Sub Menu in Content Area */}
         <Route path="organization" element={<OrganizationLayout />}>
@@ -110,6 +112,7 @@ export const AppRoutes: React.FC = () => {
           <Route path="marketplace" element={<OrgMarketplacePage />} />
           <Route path="marketplace-agreement" element={<MarketplaceAgreementPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="change-password" element={<ChangePasswordPage />} />
         </Route>
       </Route>
 

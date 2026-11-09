@@ -185,11 +185,24 @@ export const ResourceDetailDrawer: React.FC<ResourceDetailDrawerProps> = ({
             </div>
 
             <div>
-              <span className="text-[#737373] block text-[11px]">City / Area</span>
+              <span className="text-[#737373] block text-[11px]">Region &amp; City</span>
               <span className="font-semibold text-[#171717] mt-0.5 block">
-                {resource.location.city}, {resource.location.area}
+                {resource.location.city}, {resource.location.state || 'Maharashtra'}
               </span>
+              <span className="text-[11px] text-[#737373]">{resource.location.area}</span>
             </div>
+
+            {resource.location.routeName && (
+              <div className="sm:col-span-2 p-2.5 rounded-lg bg-orange-50/60 border border-orange-200">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#EA580C] block">
+                  Transit Route / Corridor
+                </span>
+                <span className="font-bold text-xs text-[#171717] mt-0.5 flex items-center gap-1.5">
+                  <span>🛣️</span>
+                  <span>{resource.location.routeName}</span>
+                </span>
+              </div>
+            )}
 
             {resource.location.landmark && (
               <div className="sm:col-span-2">
@@ -279,6 +292,34 @@ export const ResourceDetailDrawer: React.FC<ResourceDetailDrawerProps> = ({
               <span className="text-[10px] text-[#737373] mt-0.5 block">
                 Net settlement basis supplied to SODAARS
               </span>
+            </div>
+          </div>
+
+          {/* Production & Mounting Breakdown */}
+          <div className="p-3 rounded-lg bg-[#FAFAF9] border border-[#E5E5E5] space-y-2 text-xs">
+            <div className="flex items-center justify-between text-[11px] font-bold text-[#171717] border-b border-stone-200 pb-1.5">
+              <span>Production &amp; Mounting Rates</span>
+              <span className="font-mono text-[#EA580C]">{resource.totalSqFt} sq.ft</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-[11px]">
+              <div>
+                <span className="text-[#737373] block">Flex Printing:</span>
+                <span className="font-mono font-bold text-[#171717]">
+                  ₹{resource.printingRatePerSqFt || 12}/sq.ft
+                </span>{' '}
+                <span className="text-[#737373]">
+                  (₹{Math.round(resource.totalSqFt * (resource.printingRatePerSqFt || 12)).toLocaleString('en-IN')})
+                </span>
+              </div>
+              <div>
+                <span className="text-[#737373] block">Rigger Mounting:</span>
+                <span className="font-mono font-bold text-[#171717]">
+                  ₹{resource.mountingRatePerSqFt || 5}/sq.ft
+                </span>{' '}
+                <span className="text-[#737373]">
+                  (₹{Math.round(resource.totalSqFt * (resource.mountingRatePerSqFt || 5)).toLocaleString('en-IN')})
+                </span>
+              </div>
             </div>
           </div>
 

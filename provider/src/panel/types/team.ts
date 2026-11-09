@@ -28,7 +28,7 @@ export const CANONICAL_TEAM_MEMBERS: TeamMember[] = [
   {
     id: 'user_001',
     name: 'Rajesh Kumar',
-    email: 'rajesh@apexoutdoor.com',
+    email: 'rajesh@mdarts.com',
     role: 'Owner',
     status: 'Active',
     joinedDate: '2023-01-10',
@@ -40,7 +40,7 @@ export const CANONICAL_TEAM_MEMBERS: TeamMember[] = [
   {
     id: 'user_002',
     name: 'Priya Sharma',
-    email: 'priya.sharma@apexoutdoor.com',
+    email: 'priya.sharma@mdarts.com',
     role: 'Manager',
     status: 'Active',
     joinedDate: '2023-04-18',
@@ -51,7 +51,7 @@ export const CANONICAL_TEAM_MEMBERS: TeamMember[] = [
   {
     id: 'user_003',
     name: 'Amit Patel',
-    email: 'amit.patel@apexoutdoor.com',
+    email: 'amit.patel@mdarts.com',
     role: 'Viewer',
     status: 'Active',
     joinedDate: '2024-02-01',
@@ -64,7 +64,7 @@ export const CANONICAL_TEAM_MEMBERS: TeamMember[] = [
 export const CANONICAL_TEAM_INVITATIONS: TeamInvitation[] = [
   {
     id: 'inv_001',
-    email: 'vikram.singh@apexoutdoor.com',
+    email: 'vikram.singh@mdarts.com',
     name: 'Vikram Singh',
     role: 'Manager',
     sentDate: '2026-10-04',
@@ -73,7 +73,7 @@ export const CANONICAL_TEAM_INVITATIONS: TeamInvitation[] = [
   },
   {
     id: 'inv_002',
-    email: 'neha.deshmukh@apexoutdoor.com',
+    email: 'neha.deshmukh@mdarts.com',
     name: 'Neha Deshmukh',
     role: 'Viewer',
     sentDate: '2026-10-05',

@@ -290,7 +290,7 @@ export const OrganizationProfilePage: React.FC = () => {
                 <Input
                   label="Legal Entity Name"
                   required
-                  placeholder="e.g. Apex Media Networks Private Limited"
+                  placeholder="e.g. MD Arts Outdoor Media Network Pvt Ltd"
                   value={profile.legalName}
                   onChange={(e) => handleChange('legalName', e.target.value)}
                   error={errors.legalName}
@@ -300,7 +300,7 @@ export const OrganizationProfilePage: React.FC = () => {
                 <Input
                   label="Brand / Trade Display Name"
                   required
-                  placeholder="e.g. Apex Outdoor Media"
+                  placeholder="e.g. MD ARTS"
                   value={profile.tradeName}
                   onChange={(e) => handleChange('tradeName', e.target.value)}
                   error={errors.tradeName}
@@ -329,7 +329,7 @@ export const OrganizationProfilePage: React.FC = () => {
                     label="Primary Corporate Email"
                     type="email"
                     required
-                    placeholder="contact@apexoutdoor.com"
+                    placeholder="contact@mdarts.com"
                     value={profile.corporateEmail}
                     onChange={(e) => handleChange('corporateEmail', e.target.value)}
                     error={errors.corporateEmail}
@@ -351,7 +351,7 @@ export const OrganizationProfilePage: React.FC = () => {
                 <Input
                   label="Official Website URL"
                   type="url"
-                  placeholder="https://apexoutdoor.example.com"
+                  placeholder="https://mdarts.example.com"
                   value={profile.websiteUrl}
                   onChange={(e) => handleChange('websiteUrl', e.target.value)}
                   leftElement={<Globe size={14} />}
@@ -542,7 +542,7 @@ export const OrganizationProfilePage: React.FC = () => {
                   <Input
                     label="Billing Invoicing Email"
                     type="email"
-                    placeholder="accounts@apexoutdoor.com"
+                    placeholder="accounts@mdarts.com"
                     value={profile.billingEmail}
                     onChange={(e) => handleChange('billingEmail', e.target.value)}
                     error={errors.billingEmail}

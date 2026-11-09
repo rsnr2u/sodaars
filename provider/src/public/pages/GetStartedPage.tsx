@@ -92,8 +92,8 @@ export const GetStartedPage: React.FC = () => {
           <Link to="/" className="flex items-center gap-2 group">
             <img
               src="/sodaars-logo.png"
-              alt="SODAARS"
-              className="h-7 w-auto object-contain transition-transform group-hover:opacity-90"
+              alt="SODAARS - Turning Hoardings Into Digital Reach"
+              className="h-[34px] w-auto object-contain transition-transform group-hover:opacity-90"
             />
           </Link>
 

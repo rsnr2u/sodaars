@@ -39,13 +39,13 @@ export interface OrganizationProfile {
 
 export const DEFAULT_ORGANIZATION_PROFILE: OrganizationProfile = {
   id: 'org_sodaars_001',
-  legalName: 'Apex Media Networks Private Limited',
-  tradeName: 'Apex Outdoor Media',
+  legalName: 'MD Arts Outdoor Media Network Pvt Ltd',
+  tradeName: 'MD ARTS',
   registrationNumber: 'U74999MH2021PTC368412',
   dateOfIncorporation: '2021-04-15',
-  corporateEmail: 'contact@apexoutdoor.com',
+  corporateEmail: 'contact@mdarts.com',
   corporatePhone: '+91 98201 12345',
-  websiteUrl: 'https://apexoutdoor.example.com',
+  websiteUrl: 'https://mdarts.example.com',
 
   // Tax & Compliance
   gstin: '27AABCA1234F1Z5',
@@ -65,12 +65,12 @@ export const DEFAULT_ORGANIZATION_PROFILE: OrganizationProfile = {
   // Billing & Accounts
   billingContactName: 'Rajesh Kumar',
   billingContactDesignation: 'Director of Finance & Operations',
-  billingEmail: 'accounts@apexoutdoor.com',
+  billingEmail: 'accounts@mdarts.com',
   billingPhone: '+91 98201 54321',
   defaultPaymentTerms: 'Net 15 Days from Campaign Commencement',
 
   // System & Verification
-  slug: 'apex-media-networks',
+  slug: 'md-arts',
   status: 'active',
   verifiedAt: '2023-01-10',
   registeredResourceCount: 70,

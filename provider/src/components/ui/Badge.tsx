@@ -24,7 +24,7 @@ export const Badge: React.FC<BadgeProps> = ({
     blocked: 'bg-orange-50 text-orange-700 border border-orange-200',
     error: 'bg-rose-50 text-rose-700 border border-rose-200',
     inactive: 'bg-stone-100 text-stone-700 border border-stone-200',
-    brand: 'bg-orange-50 text-[#F97316] border border-orange-200',
+    brand: 'bg-red-50 text-[#E11D2E] border border-red-200',
   };
 
   return (
